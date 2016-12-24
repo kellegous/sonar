@@ -2,6 +2,7 @@ package config
 
 import (
 	"io"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -34,8 +35,8 @@ var units = []*unit{
 
 // Host ...
 type Host struct {
-	IP   string `toml:"ip"`
-	Name string `toml:"name"`
+	IP   net.IP
+	Name string
 }
 
 // Config ...
@@ -47,10 +48,13 @@ type Config struct {
 }
 
 type decl struct {
-	Addr             string  `toml:"addr"`
-	SamplesPerPeriod int     `toml:"samples-per-period"`
-	SamplePeriod     string  `toml:"sample-period"`
-	Hosts            []*Host `toml:"hosts"`
+	Addr             string `toml:"addr"`
+	SamplesPerPeriod int    `toml:"samples-per-period"`
+	SamplePeriod     string `toml:"sample-period"`
+	Hosts            []*struct {
+		IP   string `toml:"ip"`
+		Name string `toml:"name"`
+	} `toml:"hosts"`
 }
 
 func parseDuration(s string) (time.Duration, error) {
@@ -74,7 +78,15 @@ func parseDuration(s string) (time.Duration, error) {
 func (c *Config) apply(d *decl) error {
 	c.Addr = d.Addr
 	c.SamplesPerPeriod = d.SamplesPerPeriod
-	c.Hosts = d.Hosts
+
+	hosts := make([]*Host, 0, len(d.Hosts))
+	for _, host := range d.Hosts {
+		hosts = append(hosts, &Host{
+			IP:   net.ParseIP(host.IP),
+			Name: host.Name,
+		})
+	}
+	c.Hosts = hosts
 
 	if d.SamplePeriod != "" {
 		sp, err := parseDuration(d.SamplePeriod)

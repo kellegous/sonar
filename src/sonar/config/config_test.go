@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"net"
 	"testing"
 	"time"
 )
@@ -73,6 +74,10 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
+func ipEquals(ip net.IP, v string) bool {
+	return bytes.Equal(ip, net.ParseIP(v))
+}
+
 func TestRead(t *testing.T) {
 	txt := `
 	addr = ":80"
@@ -110,11 +115,11 @@ func TestRead(t *testing.T) {
 		t.Fatalf("expected 2 hosts got %d", len(cfg.Hosts))
 	}
 
-	if cfg.Hosts[0].IP != "127.0.0.1" || cfg.Hosts[0].Name != "localhost" {
+	if !ipEquals(cfg.Hosts[0].IP, "127.0.0.1") || cfg.Hosts[0].Name != "localhost" {
 		t.Fatalf("invalid Hosts[0] = %v", cfg.Hosts[0])
 	}
 
-	if cfg.Hosts[1].IP != "8.8.8.8" || cfg.Hosts[1].Name != "Google" {
+	if !ipEquals(cfg.Hosts[1].IP, "8.8.8.8") || cfg.Hosts[1].Name != "Google" {
 		t.Fatalf("invalid hosts[1] = %v", cfg.Hosts[1])
 	}
 }

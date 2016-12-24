@@ -1,0 +1,34 @@
+hash: 95cdb0fe74ee91d73e05c75a60397b17e90235f34776670ec4b1bca01eed4c47
+updated: 2016-12-23T20:55:47.541932956-05:00
+imports:
+- name: github.com/BurntSushi/toml
+  version: bbd5bb678321a0d6e58f1099321dfa73391c1b6f
+- name: github.com/golang/snappy
+  version: d9eb7a3d35ec988b8585d4a0068e462c27d28380
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/syndtr/goleveldb
+  version: 6b4daa5362b502898ddf367c5c11deb9e7a5c727
+  subpackages:
+  - leveldb
+  - leveldb/cache
+  - leveldb/comparer
+  - leveldb/errors
+  - leveldb/filter
+  - leveldb/iterator
+  - leveldb/journal
+  - leveldb/memdb
+  - leveldb/opt
+  - leveldb/storage
+  - leveldb/table
+  - leveldb/util
+- name: golang.org/x/net
+  version: 45e771701b814666a7eb299e6c7a57d0b1799e91
+  subpackages:
+  - bpf
+  - icmp
+  - internal/iana
+  - internal/netreflect
+  - ipv4
+  - ipv6
+testImports: []

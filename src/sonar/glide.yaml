@@ -6,3 +6,8 @@ import:
   - ipv4
 - package: github.com/BurntSushi/toml
   version: ^0.2.0
+- package: github.com/syndtr/goleveldb
+  subpackages:
+  - leveldb
+- package: github.com/pkg/errors
+  version: ^0.8.0
