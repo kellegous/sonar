@@ -6,7 +6,6 @@ import (
 	"net"
 	"time"
 
-	"sonar/config"
 	"sonar/ping"
 
 	"github.com/pkg/errors"
@@ -17,10 +16,10 @@ import (
 
 var (
 	// First ...
-	First = &Marker{nil}
+	First = time.Unix(0, 0)
 
 	// Last ...
-	Last = &Marker{nil}
+	Last = time.Unix(0, 0x7fffffffffffffff)
 
 	// ErrStop ...
 	ErrStop = errors.New("stop")
@@ -36,9 +35,32 @@ type Marker struct {
 	b []byte
 }
 
+func isFirst(m *Marker) bool {
+	return m.b[8] == 0 &&
+		m.b[9] == 0 &&
+		m.b[10] == 0 &&
+		m.b[11] == 0 &&
+		m.b[12] == 0 &&
+		m.b[13] == 0 &&
+		m.b[14] == 0 &&
+		m.b[15] == 0
+}
+
+func isLast(m *Marker) bool {
+	return m.b[8] == 0x7f &&
+		m.b[9] == 0xff &&
+		m.b[10] == 0xff &&
+		m.b[11] == 0xff &&
+		m.b[12] == 0xff &&
+		m.b[13] == 0xff &&
+		m.b[14] == 0xff &&
+		m.b[15] == 0xff
+
+}
+
 // Inc ...
 func (m *Marker) inc() *Marker {
-	if len(m.b) == 0 {
+	if isFirst(m) || isLast(m) {
 		return m
 	}
 
@@ -59,11 +81,11 @@ func (m *Marker) ip() net.IP {
 }
 
 // NewMarker ...
-func NewMarker(ip net.IP, t time.Time) Marker {
+func NewMarker(ip net.IP, t time.Time) *Marker {
 	b := make([]byte, 16)
 	copy(b[:8], ip)
 	binary.BigEndian.PutUint64(b[8:], uint64(t.UnixNano()))
-	return Marker{b}
+	return &Marker{b}
 }
 
 func marshalResults(r *ping.Results) []byte {
@@ -87,29 +109,16 @@ func unmarshalResults(b []byte) *ping.Results {
 }
 
 // Write ...
-func (s *Store) Write(h *config.Host, t time.Time, r *ping.Results) error {
+func (s *Store) Write(ip net.IP, t time.Time, r *ping.Results) error {
 	return s.db.Put(
-		NewMarker(h.IP, t).b,
+		NewMarker(ip, t).b,
 		marshalResults(r),
 		nil)
 }
 
 func newIterator(fr, to *Marker) (*util.Range, bool) {
 	c := bytes.Compare(fr.b, to.b)
-	if c == 0 {
-		// markers are the same terminal
-		if to == fr && (to == First || to == Last) {
-			return nil, true
-		}
-
-		// markers are either equiv or point to different terminals
-		return &util.Range{
-			Start: fr.b,
-			Limit: to.inc().b,
-		}, !(fr == Last && to == First)
-	}
-
-	if (c > 0 && to != Last) || fr == Last {
+	if c > 0 {
 		return &util.Range{
 			Start: to.b,
 			Limit: fr.inc().b,
