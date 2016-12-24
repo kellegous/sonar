@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"encoding/binary"
+	"net"
 	"time"
 
 	"sonar/config"
@@ -10,11 +11,59 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/iterator"
+	"github.com/syndtr/goleveldb/leveldb/util"
+)
+
+var (
+	// First ...
+	First = &Marker{nil}
+
+	// Last ...
+	Last = &Marker{nil}
+
+	// ErrStop ...
+	ErrStop = errors.New("stop")
 )
 
 // Store ...
 type Store struct {
 	db *leveldb.DB
+}
+
+// Marker ...
+type Marker struct {
+	b []byte
+}
+
+// Inc ...
+func (m *Marker) inc() *Marker {
+	if len(m.b) == 0 {
+		return m
+	}
+
+	b := make([]byte, 16)
+	copy(b[:8], m.b[:8])
+	binary.BigEndian.PutUint64(b[8:],
+		binary.BigEndian.Uint64(m.b[8:])+1)
+	return &Marker{b}
+}
+
+func (m *Marker) time() time.Time {
+	return time.Unix(0,
+		int64(binary.BigEndian.Uint64(m.b[8:])))
+}
+
+func (m *Marker) ip() net.IP {
+	return net.IP(m.b[:8])
+}
+
+// NewMarker ...
+func NewMarker(ip net.IP, t time.Time) Marker {
+	b := make([]byte, 16)
+	copy(b[:8], ip)
+	binary.BigEndian.PutUint64(b[8:], uint64(t.UnixNano()))
+	return Marker{b}
 }
 
 func marshalResults(r *ping.Results) []byte {
@@ -25,14 +74,101 @@ func marshalResults(r *ping.Results) []byte {
 	return b.Bytes()
 }
 
+func unmarshalResults(b []byte) *ping.Results {
+	n := len(b) / 8
+	d := make([]time.Duration, n)
+	for i := 0; i < n; i++ {
+		d[i] = time.Duration(
+			binary.BigEndian.Uint64(b[i*8 : (i+1)*8]))
+	}
+	return &ping.Results{
+		Data: d,
+	}
+}
+
+// Write ...
 func (s *Store) Write(h *config.Host, t time.Time, r *ping.Results) error {
-	var key [16]byte
-	copy(key[:8], h.IP)
-	binary.BigEndian.PutUint64(key[8:], uint64(t.UnixNano()))
+	return s.db.Put(
+		NewMarker(h.IP, t).b,
+		marshalResults(r),
+		nil)
+}
 
-	val := marshalResults(r)
+func newIterator(fr, to *Marker) (*util.Range, bool) {
+	c := bytes.Compare(fr.b, to.b)
+	if c == 0 {
+		// markers are the same terminal
+		if to == fr && (to == First || to == Last) {
+			return nil, true
+		}
 
-	return s.db.Put(key[:], val, nil)
+		// markers are either equiv or point to different terminals
+		return &util.Range{
+			Start: fr.b,
+			Limit: to.inc().b,
+		}, !(fr == Last && to == First)
+	}
+
+	if (c > 0 && to != Last) || fr == Last {
+		return &util.Range{
+			Start: to.b,
+			Limit: fr.inc().b,
+		}, false
+	}
+
+	return &util.Range{
+		Start: fr.b,
+		Limit: to.inc().b,
+	}, true
+}
+
+func disp(
+	it iterator.Iterator,
+	fn func(ip net.IP, t time.Time, r *ping.Results) error) error {
+	m := Marker{
+		b: it.Key(),
+	}
+	return fn(m.ip(), m.time(), unmarshalResults(it.Value()))
+}
+
+// ForEach ...
+func (s *Store) ForEach(
+	fr, to *Marker,
+	fn func(ip net.IP, t time.Time, r *ping.Results) error) error {
+	r, fwd := newIterator(fr, to)
+	if r == nil {
+		return nil
+	}
+
+	it := s.db.NewIterator(r, nil)
+	defer it.Release()
+
+	if fwd {
+		for it.Next() {
+			if err := disp(it, fn); err == ErrStop {
+				return nil
+			} else if err != nil {
+				return err
+			}
+		}
+	} else {
+		if it.Last() {
+			if err := disp(it, fn); err == ErrStop {
+				return nil
+			} else if err != nil {
+				return err
+			}
+		}
+		for it.Prev() {
+			if err := disp(it, fn); err == ErrStop {
+				return nil
+			} else if err != nil {
+				return err
+			}
+		}
+	}
+
+	return it.Error()
 }
 
 // Open ...

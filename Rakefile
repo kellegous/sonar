@@ -31,5 +31,6 @@ task :default => CMDS
 
 task :test do
 	sh 'go', 'test',
-		'sonar/config'
+		'sonar/config',
+		'sonar/store'
 end
