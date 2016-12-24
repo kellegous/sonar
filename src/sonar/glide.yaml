@@ -1,0 +1,8 @@
+package: sonar
+import:
+- package: golang.org/x/net
+  subpackages:
+  - icmp
+  - ipv4
+- package: github.com/BurntSushi/toml
+  version: ^0.2.0
