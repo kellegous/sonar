@@ -9,6 +9,12 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+const (
+	defaultSamplePeriod     = 20 * time.Second
+	defaultAddr             = ":7699"
+	defaultSamplesPerPeriod = 10
+)
+
 type unit struct {
 	p string
 	d time.Duration
@@ -34,11 +40,17 @@ type Host struct {
 
 // Config ...
 type Config struct {
-	Addr             string `toml:"addr"`
-	SamplesPerPeriod int    `toml:"samples-per-period"`
-	SamplePeriodStr  string `toml:"sample-period"`
+	Addr             string
+	SamplesPerPeriod int
+	SamplePeriod     time.Duration
 	Hosts            []*Host
-	sampleFreq       time.Duration
+}
+
+type decl struct {
+	Addr             string  `toml:"addr"`
+	SamplesPerPeriod int     `toml:"samples-per-period"`
+	SamplePeriod     string  `toml:"sample-period"`
+	Hosts            []*Host `toml:"hosts"`
 }
 
 func parseDuration(s string) (time.Duration, error) {
@@ -59,28 +71,50 @@ func parseDuration(s string) (time.Duration, error) {
 	return time.Duration(v) * m, nil
 }
 
-func expand(c *Config) error {
-	d, err := parseDuration(c.SamplePeriodStr)
-	if err != nil {
-		return err
+func (c *Config) apply(d *decl) error {
+	c.Addr = d.Addr
+	c.SamplesPerPeriod = d.SamplesPerPeriod
+	c.Hosts = d.Hosts
+
+	if d.SamplePeriod != "" {
+		sp, err := parseDuration(d.SamplePeriod)
+		if err != nil {
+			return err
+		}
+		c.SamplePeriod = sp
+	} else {
+		c.SamplePeriod = time.Duration(0)
 	}
-	c.sampleFreq = d
+
+	if c.Addr == "" {
+		c.Addr = defaultAddr
+	}
+
+	if c.SamplesPerPeriod == 0 {
+		c.SamplesPerPeriod = defaultSamplesPerPeriod
+	}
+
+	if c.SamplePeriod == 0 {
+		c.SamplePeriod = defaultSamplePeriod
+	}
 
 	return nil
 }
 
 // ReadFile ...
 func (c *Config) ReadFile(filename string) error {
-	if _, err := toml.DecodeFile(filename, c); err != nil {
+	var d decl
+	if _, err := toml.DecodeFile(filename, &d); err != nil {
 		return err
 	}
-	return nil
+	return c.apply(&d)
 }
 
 // Read ...
 func (c *Config) Read(r io.Reader) error {
-	if _, err := toml.DecodeReader(r, c); err != nil {
+	var d decl
+	if _, err := toml.DecodeReader(r, &d); err != nil {
 		return err
 	}
-	return nil
+	return c.apply(&d)
 }
