@@ -8,10 +8,13 @@ import (
 	"sonar/config"
 	"sonar/ping"
 	"sonar/store"
+	"sonar/web"
 )
 
 func monitor(cfg *config.Config, s *store.Store) {
 	for {
+		now := time.Now()
+
 		for _, host := range cfg.Hosts {
 			p, err := ping.NewPinger()
 			if err != nil {
@@ -21,6 +24,12 @@ func monitor(cfg *config.Config, s *store.Store) {
 			res := make([]time.Duration, cfg.SamplesPerPeriod)
 			for i := 0; i < cfg.SamplesPerPeriod; i++ {
 				res[i], _ = p.Ping(host.IP, i)
+			}
+
+			p.Close()
+
+			if err := s.Write(host.IP, now, res); err != nil {
+				log.Panic(err)
 			}
 		}
 
@@ -45,6 +54,5 @@ func main() {
 
 	go monitor(&cfg, s)
 
-	ch := make(chan struct{})
-	<-ch
+	log.Panic(web.ListenAndServe(cfg.Addr))
 }

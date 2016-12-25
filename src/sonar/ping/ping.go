@@ -75,6 +75,11 @@ type Pinger struct {
 	b [1500]byte
 }
 
+// Close ...
+func (p *Pinger) Close() error {
+	return p.c.Close()
+}
+
 // NewPinger ...
 func NewPinger() (*Pinger, error) {
 	c, err := icmp.ListenPacket("ip4:icmp", "0.0.0.0")
