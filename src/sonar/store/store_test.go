@@ -7,31 +7,27 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
-
-	"sonar/ping"
 )
 
 func TestResultMarshal(t *testing.T) {
-	r := &ping.Results{
-		Data: []time.Duration{
-			time.Second,
-			23 * time.Hour,
-			300 * time.Millisecond,
-		},
+	r := []time.Duration{
+		time.Second,
+		23 * time.Hour,
+		300 * time.Millisecond,
 	}
 
 	b := marshalResults(r)
 
 	rp := unmarshalResults(b)
 
-	if len(rp.Data) != len(r.Data) {
-		t.Fatalf("len is wrong %d vs %d", len(rp.Data), len(r.Data))
+	if len(rp) != len(r) {
+		t.Fatalf("len is wrong %d vs %d", len(rp), len(r))
 	}
 
-	for i, dur := range r.Data {
-		if dur != rp.Data[i] {
+	for i, dur := range r {
+		if dur != rp[i] {
 			t.Fatalf("data is wrong at %d: %s vs %s",
-				i, dur.String(), rp.Data[i].String())
+				i, dur.String(), rp[i].String())
 		}
 	}
 }
@@ -67,10 +63,10 @@ func intArraysAreSame(t *testing.T, a, b []int) {
 
 func readDoesProduce(t *testing.T, s *Store, fr, to *Marker, exp []int) {
 	var got []int
-	if err := s.ForEach(fr, to, func(ip net.IP, tm time.Time, r *ping.Results) error {
+	if err := s.ForEach(fr, to, func(ip net.IP, tm time.Time, r []time.Duration) error {
 		ix := int(tm.UnixNano())
-		if ix != int(r.Data[0]) {
-			t.Fatalf("Invalid results %d instead of %d", int(r.Data[0]), ix)
+		if ix != int(r[0]) {
+			t.Fatalf("Invalid results %d instead of %d", int(r[0]), ix)
 		}
 		got = append(got, ix)
 		return nil
@@ -94,9 +90,7 @@ func TestReadWrite(t *testing.T) {
 	for _, ip := range ips {
 		for i := 1; i <= 10; i++ {
 			d := time.Duration(uint64(i))
-			if err := s.Write(ip, time.Unix(0, int64(i)), &ping.Results{
-				Data: []time.Duration{d},
-			}); err != nil {
+			if err := s.Write(ip, time.Unix(0, int64(i)), []time.Duration{d}); err != nil {
 				t.Fatal(err)
 			}
 		}

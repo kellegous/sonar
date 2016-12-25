@@ -1,23 +1,50 @@
 package main
 
 import (
+	"flag"
 	"log"
-	"net"
+	"time"
 
+	"sonar/config"
 	"sonar/ping"
+	"sonar/store"
 )
 
+func monitor(cfg *config.Config, s *store.Store) {
+	for {
+		for _, host := range cfg.Hosts {
+			p, err := ping.NewPinger()
+			if err != nil {
+				log.Panic(err)
+			}
+
+			res := make([]time.Duration, cfg.SamplesPerPeriod)
+			for i := 0; i < cfg.SamplesPerPeriod; i++ {
+				res[i], _ = p.Ping(host.IP, i)
+			}
+		}
+
+		time.Sleep(cfg.SamplePeriod)
+	}
+}
+
 func main() {
-	ip := net.IPAddr{
-		IP: net.ParseIP("8.8.8.8"),
+	flagConf := flag.String("config", "sonar.toml",
+		"config file")
+	flag.Parse()
+
+	var cfg config.Config
+	if err := cfg.ReadFile(*flagConf); err != nil {
+		log.Panic(err)
 	}
 
-	r, err := ping.Measure(&ip, 10)
+	s, err := store.Open(cfg.DataPath)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	for _, t := range r.Data {
-		log.Println(t)
-	}
+	go monitor(&cfg, s)
+
+	ch := make(chan struct{})
+	<-ch
 }

@@ -69,8 +69,59 @@ func recv(c *icmp.PacketConn, buf []byte) (time.Duration, error) {
 	}
 }
 
+// Pinger ...
+type Pinger struct {
+	c *icmp.PacketConn
+	b [1500]byte
+}
+
+// NewPinger ...
+func NewPinger() (*Pinger, error) {
+	c, err := icmp.ListenPacket("ip4:icmp", "0.0.0.0")
+	if err != nil {
+		return nil, err
+	}
+
+	return &Pinger{
+		c: c,
+	}, nil
+}
+
+// Ping ...
+func (p *Pinger) Ping(ip net.IP, id int) (time.Duration, error) {
+
+	var data [8]byte
+
+	timeToBytes(data[:], time.Now())
+
+	msg := icmp.Message{
+		Type: ipv4.ICMPTypeEcho,
+		Code: 0,
+		Body: &icmp.Echo{
+			ID:   id,
+			Seq:  id,
+			Data: data[:],
+		},
+	}
+
+	mb, err := msg.Marshal(nil)
+	if err != nil {
+		return time.Duration(0), err
+	}
+
+	if _, err := p.c.WriteTo(mb, &net.IPAddr{IP: ip}); err != nil {
+		return time.Duration(0), err
+	}
+
+	return recv(p.c, p.b[:])
+}
+
 // Measure ...
-func Measure(ip *net.IPAddr, n int) (*Results, error) {
+func Measure(ip net.IP, n int) (*Results, error) {
+	addr := &net.IPAddr{
+		IP: ip,
+	}
+
 	c, err := icmp.ListenPacket("ip4:icmp", "0.0.0.0")
 	if err != nil {
 		return nil, err
@@ -101,7 +152,7 @@ func Measure(ip *net.IPAddr, n int) (*Results, error) {
 			return nil, err
 		}
 
-		if _, err := c.WriteTo(mb, ip); err != nil {
+		if _, err := c.WriteTo(mb, addr); err != nil {
 			return nil, err
 		}
 

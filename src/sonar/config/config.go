@@ -3,6 +3,7 @@ package config
 import (
 	"io"
 	"net"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -14,6 +15,7 @@ const (
 	defaultSamplePeriod     = 20 * time.Second
 	defaultAddr             = ":7699"
 	defaultSamplesPerPeriod = 10
+	defaultDataPath         = "data"
 )
 
 type unit struct {
@@ -41,6 +43,7 @@ type Host struct {
 
 // Config ...
 type Config struct {
+	DataPath         string
 	Addr             string
 	SamplesPerPeriod int
 	SamplePeriod     time.Duration
@@ -48,6 +51,7 @@ type Config struct {
 }
 
 type decl struct {
+	DataPath         string `toml:"data-path"`
 	Addr             string `toml:"addr"`
 	SamplesPerPeriod int    `toml:"samples-per-period"`
 	SamplePeriod     string `toml:"sample-period"`
@@ -75,7 +79,7 @@ func parseDuration(s string) (time.Duration, error) {
 	return time.Duration(v) * m, nil
 }
 
-func (c *Config) apply(d *decl) error {
+func (c *Config) apply(root string, d *decl) error {
 	c.Addr = d.Addr
 	c.SamplesPerPeriod = d.SamplesPerPeriod
 
@@ -87,6 +91,20 @@ func (c *Config) apply(d *decl) error {
 		})
 	}
 	c.Hosts = hosts
+
+	if d.DataPath == "" {
+		d.DataPath = defaultDataPath
+	}
+
+	if !filepath.IsAbs(d.DataPath) {
+		p, err := filepath.Abs(filepath.Join(root, d.DataPath))
+		if err != nil {
+			return err
+		}
+		c.DataPath = p
+	} else {
+		c.DataPath = d.DataPath
+	}
 
 	if d.SamplePeriod != "" {
 		sp, err := parseDuration(d.SamplePeriod)
@@ -119,7 +137,7 @@ func (c *Config) ReadFile(filename string) error {
 	if _, err := toml.DecodeFile(filename, &d); err != nil {
 		return err
 	}
-	return c.apply(&d)
+	return c.apply(filepath.Dir(filename), &d)
 }
 
 // Read ...
@@ -128,5 +146,5 @@ func (c *Config) Read(r io.Reader) error {
 	if _, err := toml.DecodeReader(r, &d); err != nil {
 		return err
 	}
-	return c.apply(&d)
+	return c.apply("/", &d)
 }

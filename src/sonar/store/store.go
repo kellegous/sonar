@@ -6,8 +6,6 @@ import (
 	"net"
 	"time"
 
-	"sonar/ping"
-
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
@@ -88,28 +86,26 @@ func NewMarker(ip net.IP, t time.Time) *Marker {
 	return &Marker{b}
 }
 
-func marshalResults(r *ping.Results) []byte {
-	b := bytes.NewBuffer(make([]byte, 0, len(r.Data)*8))
-	for _, t := range r.Data {
+func marshalResults(r []time.Duration) []byte {
+	b := bytes.NewBuffer(make([]byte, 0, len(r)*8))
+	for _, t := range r {
 		binary.Write(b, binary.BigEndian, t.Nanoseconds())
 	}
 	return b.Bytes()
 }
 
-func unmarshalResults(b []byte) *ping.Results {
+func unmarshalResults(b []byte) []time.Duration {
 	n := len(b) / 8
 	d := make([]time.Duration, n)
 	for i := 0; i < n; i++ {
 		d[i] = time.Duration(
 			binary.BigEndian.Uint64(b[i*8 : (i+1)*8]))
 	}
-	return &ping.Results{
-		Data: d,
-	}
+	return d
 }
 
 // Write ...
-func (s *Store) Write(ip net.IP, t time.Time, r *ping.Results) error {
+func (s *Store) Write(ip net.IP, t time.Time, r []time.Duration) error {
 	return s.db.Put(
 		NewMarker(ip, t).b,
 		marshalResults(r),
@@ -133,7 +129,7 @@ func newIterator(fr, to *Marker) (*util.Range, bool) {
 
 func disp(
 	it iterator.Iterator,
-	fn func(ip net.IP, t time.Time, r *ping.Results) error) error {
+	fn func(ip net.IP, t time.Time, r []time.Duration) error) error {
 	m := Marker{
 		b: it.Key(),
 	}
@@ -143,7 +139,7 @@ func disp(
 // ForEach ...
 func (s *Store) ForEach(
 	fr, to *Marker,
-	fn func(ip net.IP, t time.Time, r *ping.Results) error) error {
+	fn func(ip net.IP, t time.Time, r []time.Duration) error) error {
 	r, fwd := newIterator(fr, to)
 	if r == nil {
 		return nil
