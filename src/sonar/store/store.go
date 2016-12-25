@@ -136,6 +136,25 @@ func disp(
 	return fn(m.ip(), m.time(), unmarshalResults(it.Value()))
 }
 
+// Current ...
+func (s *Store) Current(ip net.IP) (time.Time, []time.Duration, error) {
+	it := s.db.NewIterator(&util.Range{
+		Start: NewMarker(ip, First).b,
+		Limit: NewMarker(ip, Last).b,
+	}, nil)
+	defer it.Release()
+
+	if !it.Last() {
+		return time.Time{}, nil, leveldb.ErrNotFound
+	}
+
+	m := Marker{
+		b: it.Key(),
+	}
+
+	return m.time(), unmarshalResults(it.Value()), nil
+}
+
 // ForEach ...
 func (s *Store) ForEach(
 	fr, to *Marker,

@@ -1,10 +1,12 @@
-hash: 95cdb0fe74ee91d73e05c75a60397b17e90235f34776670ec4b1bca01eed4c47
-updated: 2016-12-23T20:55:47.541932956-05:00
+hash: 7cd6522e4c4c1b88efc073bfc46af7eb65efeff1550c059f0761302545e89d0a
+updated: 2016-12-24T22:11:46.468060063-05:00
 imports:
 - name: github.com/BurntSushi/toml
   version: bbd5bb678321a0d6e58f1099321dfa73391c1b6f
 - name: github.com/golang/snappy
   version: d9eb7a3d35ec988b8585d4a0068e462c27d28380
+- name: github.com/kellegous/pork
+  version: 8e2e76715c17cab88acdeed9a0d045a36fa9bc19
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/syndtr/goleveldb

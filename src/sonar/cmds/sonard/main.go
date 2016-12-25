@@ -54,5 +54,5 @@ func main() {
 
 	go monitor(&cfg, s)
 
-	log.Panic(web.ListenAndServe(cfg.Addr))
+	log.Panic(web.ListenAndServe(&cfg, s))
 }

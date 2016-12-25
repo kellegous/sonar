@@ -1,8 +1,19 @@
 package web
 
-import "net/http"
+import (
+	"net/http"
+
+	"sonar/config"
+	"sonar/store"
+
+	"github.com/kellegous/pork"
+)
 
 // ListenAndServe ...
-func ListenAndServe(addr string) error {
-	return http.ListenAndServe(addr, nil)
+func ListenAndServe(cfg *config.Config, s *store.Store) error {
+	r := pork.NewRouter(nil, nil, nil)
+
+	setupAPI(r, cfg, s)
+
+	return http.ListenAndServe(cfg.Addr, r)
 }
