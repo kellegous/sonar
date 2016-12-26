@@ -64,12 +64,13 @@ type hourly struct {
 
 // Summary ...
 type Summary struct {
-	Avg    float64 `json:"avg"`
-	Stddev float64 `json:"stddev"`
-	Max    int     `json:"max"`
-	Min    int     `json:"min"`
-	Count  int     `json:"count"`
-	Data   []int   `json:"data,omitempty"`
+	LossRatio float64 `json:"loss-ratio"`
+	Avg       float64 `json:"avg"`
+	Stddev    float64 `json:"stddev"`
+	Max       int     `json:"max"`
+	Min       int     `json:"min"`
+	Count     int     `json:"count"`
+	Data      []int   `json:"data,omitempty"`
 }
 
 func summarize(s *Summary, vals []time.Duration, withData bool) {
@@ -80,39 +81,56 @@ func summarize(s *Summary, vals []time.Duration, withData bool) {
 		return
 	}
 
-	var max int64
-	var min int64 = 0x7fffffffffffffff
-
-	mu := 0.0
+	// filter out any lost packets
+	valid := make([]int, 0, n)
 	for _, d := range vals {
-		mu += float64(d.Nanoseconds())
-		if d.Nanoseconds() > max {
-			max = d.Nanoseconds()
+		v := int(d.Nanoseconds())
+		if v == 0 {
+			continue
 		}
-		if d.Nanoseconds() < min {
-			min = d.Nanoseconds()
-		}
+		valid = append(valid, v)
 	}
-	mu /= float64(n)
 
-	std := 0.0
-	for _, d := range vals {
-		x := float64(d.Nanoseconds()) - mu
-		std += x * x
-	}
-	std = math.Sqrt(std / float64(n))
-
-	s.Avg = mu
-	s.Stddev = std
-	s.Max = int(max)
-	s.Min = int(min)
 	s.Count = n
+	s.LossRatio = 1.0 - float64(len(valid))/float64(n)
 
 	if withData {
 		for _, d := range vals {
 			s.Data = append(s.Data, int(d.Nanoseconds()))
 		}
 	}
+
+	// if all packets were lost, we can't do anything else.
+	if len(valid) == 0 {
+		return
+	}
+
+	max := 0
+	min := 0x7fffffffffffffff
+
+	mu := 0.0
+	for _, d := range valid {
+		mu += float64(d)
+		if d > max {
+			max = d
+		}
+		if d < min {
+			min = d
+		}
+	}
+	mu /= float64(len(valid))
+
+	std := 0.0
+	for _, d := range valid {
+		x := float64(d) - mu
+		std += x * x
+	}
+	std = math.Sqrt(std / float64(len(valid)))
+
+	s.Avg = mu
+	s.Stddev = std
+	s.Max = int(max)
+	s.Min = int(min)
 }
 
 func apiCurrent(cfg *config.Config, s *store.Store, w pork.ResponseWriter, r *http.Request) {
