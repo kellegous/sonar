@@ -11,7 +11,14 @@ CMDS = FileList['src/sonar/cmds/*'].map do |f|
   name = File.basename(f)
   dest = File.join('bin', name)
   file! dest => DEPS do |t|
-    sh 'go', 'install', "sonar/cmds/#{name}"
+  	cmd = ['go', 'install']
+  	if ENV['dev'] == 'true'
+  		dir = File.absolute_path('src/sonar/web/assets')
+  		cmd << '-ldflags'
+  		cmd << "-X main.assetsDir=#{dir}"
+  	end
+  	cmd << "sonar/cmds/#{name}"
+    sh *cmd
   end
   dest
 end

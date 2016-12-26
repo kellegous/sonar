@@ -34,25 +34,25 @@ type Marker struct {
 }
 
 func isFirst(m *Marker) bool {
-	return m.b[8] == 0 &&
+	return m.b[4] == 0 &&
+		m.b[5] == 0 &&
+		m.b[6] == 0 &&
+		m.b[7] == 0 &&
+		m.b[8] == 0 &&
 		m.b[9] == 0 &&
 		m.b[10] == 0 &&
-		m.b[11] == 0 &&
-		m.b[12] == 0 &&
-		m.b[13] == 0 &&
-		m.b[14] == 0 &&
-		m.b[15] == 0
+		m.b[11] == 0
 }
 
 func isLast(m *Marker) bool {
-	return m.b[8] == 0x7f &&
+	return m.b[4] == 0x7f &&
+		m.b[5] == 0xff &&
+		m.b[6] == 0xff &&
+		m.b[7] == 0xff &&
+		m.b[8] == 0xff &&
 		m.b[9] == 0xff &&
 		m.b[10] == 0xff &&
-		m.b[11] == 0xff &&
-		m.b[12] == 0xff &&
-		m.b[13] == 0xff &&
-		m.b[14] == 0xff &&
-		m.b[15] == 0xff
+		m.b[11] == 0xff
 
 }
 
@@ -62,27 +62,27 @@ func (m *Marker) inc() *Marker {
 		return m
 	}
 
-	b := make([]byte, 16)
-	copy(b[:8], m.b[:8])
-	binary.BigEndian.PutUint64(b[8:],
-		binary.BigEndian.Uint64(m.b[8:])+1)
+	b := make([]byte, 12)
+	copy(b[:4], m.b[:4])
+	binary.BigEndian.PutUint64(b[4:],
+		binary.BigEndian.Uint64(m.b[4:])+1)
 	return &Marker{b}
 }
 
 func (m *Marker) time() time.Time {
 	return time.Unix(0,
-		int64(binary.BigEndian.Uint64(m.b[8:])))
+		int64(binary.BigEndian.Uint64(m.b[4:])))
 }
 
 func (m *Marker) ip() net.IP {
-	return net.IP(m.b[:8])
+	return net.IP(m.b[:4])
 }
 
 // NewMarker ...
 func NewMarker(ip net.IP, t time.Time) *Marker {
-	b := make([]byte, 16)
-	copy(b[:8], ip)
-	binary.BigEndian.PutUint64(b[8:], uint64(t.UnixNano()))
+	b := make([]byte, 12)
+	copy(b[:4], ip[len(ip)-4:])
+	binary.BigEndian.PutUint64(b[4:], uint64(t.UnixNano()))
 	return &Marker{b}
 }
 

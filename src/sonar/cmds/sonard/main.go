@@ -11,11 +11,14 @@ import (
 	"sonar/web"
 )
 
+var assetsDir string
+
 func monitor(cfg *config.Config, s *store.Store) {
 	for {
 		now := time.Now()
 
 		for _, host := range cfg.Hosts {
+
 			p, err := ping.NewPinger()
 			if err != nil {
 				log.Panic(err)
@@ -26,7 +29,9 @@ func monitor(cfg *config.Config, s *store.Store) {
 				res[i], _ = p.Ping(host.IP, i)
 			}
 
-			p.Close()
+			if err := p.Close(); err != nil {
+				log.Panic(err)
+			}
 
 			if err := s.Write(host.IP, now, res); err != nil {
 				log.Panic(err)
@@ -54,5 +59,5 @@ func main() {
 
 	go monitor(&cfg, s)
 
-	log.Panic(web.ListenAndServe(&cfg, s))
+	log.Panic(web.ListenAndServe(&cfg, s, assetsDir))
 }
