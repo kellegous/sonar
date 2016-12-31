@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"hash/fnv"
 	"log"
+	"net"
 	"time"
 
 	"sonar/config"
@@ -13,13 +15,19 @@ import (
 
 var assetsDir string
 
+func idFor(ip net.IP) int {
+	h := fnv.New32()
+	h.Write(ip)
+	return int(h.Sum32() & 0xffff)
+}
+
 func monitor(cfg *config.Config, s *store.Store) {
 	for {
 		now := time.Now()
 
 		for _, host := range cfg.Hosts {
 
-			p, err := ping.NewPinger()
+			p, err := ping.NewPinger(idFor(host.IP))
 			if err != nil {
 				log.Panic(err)
 			}
@@ -43,7 +51,7 @@ func monitor(cfg *config.Config, s *store.Store) {
 }
 
 func main() {
-	flagConf := flag.String("config", "sonar.toml",
+	flagConf := flag.String("conf", "sonar.toml",
 		"config file")
 	flag.Parse()
 

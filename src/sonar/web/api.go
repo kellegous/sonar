@@ -177,7 +177,7 @@ func apiByHour(cfg *config.Config, s *store.Store, w pork.ResponseWriter, r *htt
 	hrs := intParam(r.FormValue("n"), 24)
 	withRaw := boolParam(r.FormValue("with-raw"))
 
-	st := time.Now().Add(-time.Duration(hrs) * time.Hour).Truncate(time.Hour)
+	st := time.Now().Add(-time.Duration(hrs-1) * time.Hour).Truncate(time.Hour)
 
 	var res []*hourly
 
@@ -188,7 +188,7 @@ func apiByHour(cfg *config.Config, s *store.Store, w pork.ResponseWriter, r *htt
 			store.NewMarker(host.IP, store.Last),
 			func(ip net.IP, t time.Time, vals []time.Duration) error {
 				ix := int(t.Sub(st).Nanoseconds() / int64(time.Hour))
-				if ix < 0 || ix >= hrs {
+				if ix < 0 || ix > hrs {
 					return nil
 				}
 				for _, val := range vals {

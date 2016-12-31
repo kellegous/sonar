@@ -31,21 +31,26 @@ func bytesToTime(b []byte) time.Time {
 	return time.Unix(0, int64(binary.LittleEndian.Uint64(b)))
 }
 
-func decodeTimeFrom(msg *icmp.Message) (time.Time, error) {
+func decodeTimeFrom(msg *icmp.Message) (int, int, time.Time, error) {
 	b, err := msg.Body.Marshal(protocolICMP)
 	if err != nil {
-		return time.Time{}, err
+		return 0, 0, time.Time{}, err
 	}
 
-	return bytesToTime(b[4:]), nil
+	id := int(binary.BigEndian.Uint16(b[:2]))
+	seq := int(binary.BigEndian.Uint16(b[2:4]))
+
+	return id, seq, bytesToTime(b[4:]), nil
 }
 
-func recv(c *icmp.PacketConn, buf []byte) (time.Duration, error) {
-	if err := c.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
+func recv(p *Pinger, seq int, dl time.Time) (time.Duration, error) {
+	if err := p.c.SetReadDeadline(dl); err != nil {
 		return time.Duration(0), err
 	}
 
-	n, _, err := c.ReadFrom(buf)
+	buf := p.b[:]
+
+	n, _, err := p.c.ReadFrom(buf)
 	if err != nil {
 		return time.Duration(0), err
 	}
@@ -57,10 +62,16 @@ func recv(c *icmp.PacketConn, buf []byte) (time.Duration, error) {
 
 	switch msg.Type {
 	case ipv4.ICMPTypeEchoReply:
-		t, err := decodeTimeFrom(msg)
+		id, s, t, err := decodeTimeFrom(msg)
 		if err != nil {
 			return time.Duration(0), err
 		}
+
+		// we received something, but not the right something.
+		if p.id != id || seq != s {
+			return recv(p, seq, dl)
+		}
+
 		return time.Now().Sub(t), nil
 	case ipv4.ICMPTypeDestinationUnreachable, ipv4.ICMPTypeTimeExceeded:
 		return time.Duration(0), ErrNoAnswer
@@ -71,8 +82,9 @@ func recv(c *icmp.PacketConn, buf []byte) (time.Duration, error) {
 
 // Pinger ...
 type Pinger struct {
-	c *icmp.PacketConn
-	b [1500]byte
+	c  *icmp.PacketConn
+	id int
+	b  [1500]byte
 }
 
 // Close ...
@@ -81,19 +93,20 @@ func (p *Pinger) Close() error {
 }
 
 // NewPinger ...
-func NewPinger() (*Pinger, error) {
+func NewPinger(id int) (*Pinger, error) {
 	c, err := icmp.ListenPacket("ip4:icmp", "0.0.0.0")
 	if err != nil {
 		return nil, err
 	}
 
 	return &Pinger{
-		c: c,
+		c:  c,
+		id: id,
 	}, nil
 }
 
 // Ping ...
-func (p *Pinger) Ping(ip net.IP, id int) (time.Duration, error) {
+func (p *Pinger) Ping(ip net.IP, seq int) (time.Duration, error) {
 
 	var data [8]byte
 
@@ -103,8 +116,8 @@ func (p *Pinger) Ping(ip net.IP, id int) (time.Duration, error) {
 		Type: ipv4.ICMPTypeEcho,
 		Code: 0,
 		Body: &icmp.Echo{
-			ID:   id,
-			Seq:  id,
+			ID:   p.id & 0xffff,
+			Seq:  seq,
 			Data: data[:],
 		},
 	}
@@ -118,5 +131,5 @@ func (p *Pinger) Ping(ip net.IP, id int) (time.Duration, error) {
 		return time.Duration(0), err
 	}
 
-	return recv(p.c, p.b[:])
+	return recv(p, seq, time.Now().Add(5*time.Second))
 }
