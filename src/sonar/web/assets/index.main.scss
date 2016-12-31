@@ -1,3 +1,19 @@
 body {
-	background: #fff;
+	margin: 0;
+}
+
+header {
+	font-size: 36px;
+	background-color: #f6f6f6;
+	>div {
+		color: #09f;
+		width: 1100px;
+		margin: 0 auto;
+		padding: 10px 0 12px 0;
+	}
+}
+
+#cnt {
+	width: 1100px;
+	margin: 0 auto;
 }
