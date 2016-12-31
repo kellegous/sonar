@@ -8,4 +8,4 @@ RUN apt-get update \
 
 EXPOSE 7676
 
-CMD ["/usr/local/bin/sonard", "--data=/data"]
+CMD ["/usr/local/bin/sonard", "--conf=/data/sonar.toml"]
