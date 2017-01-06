@@ -1,5 +1,7 @@
 body {
 	margin: 0;
+	font-family: 'Roboto', sans-serif;
+	font-weight: 300;
 }
 
 header {
@@ -13,7 +15,64 @@ header {
 	}
 }
 
+.unit-ms, .unit-perc {
+	font-size: 60%;
+	color: #aaa;
+	margin-left: 0.1em;
+	display: inline-block;
+	width: 40px;
+	text-align: left;
+}
+
 #cnt {
 	width: 1100px;
 	margin: 0 auto;
+
+	.host {
+		margin: 50px 0;
+
+		>.head {
+			margin-bottom: 10px;
+			padding-bottom: 10px;
+			border-bottom: 1px solid #eee;
+
+			>.name {
+				font-size: 20px;
+				color: #999;
+				display: inline-block;
+				width: 250px;
+			}
+
+			>.ip {
+				font-size: 16px;
+				color: #aaa;
+			}
+		}
+
+		>.row {
+			font-size: 42px;
+			color: #999;
+			font-weight: 100;
+			position: relative;
+			margin-bottom: 5px;
+			padding: 20px 0;
+
+			>.l {
+				width: 200px - 30px;
+				text-align: right;
+				padding-right: 30px;
+			}
+
+			>.r {
+				position: absolute;
+				top: 0;
+				left: 200px;
+				right: 0;
+				bottom: 0;
+			}
+		}
+
+		.graf {
+		}
+	}
 }

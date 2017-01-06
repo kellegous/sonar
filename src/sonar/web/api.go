@@ -6,11 +6,13 @@ import (
 	"math"
 	"net"
 	"net/http"
-	"sonar/config"
-	"sonar/store"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"sonar/config"
+	"sonar/store"
 
 	"github.com/kellegous/pork"
 )
@@ -64,13 +66,20 @@ type hourly struct {
 
 // Summary ...
 type Summary struct {
-	LossRatio float64 `json:"loss-ratio"`
+	LossRatio float64 `json:"lossRatio"`
 	Avg       float64 `json:"avg"`
-	Stddev    float64 `json:"stddev"`
 	Max       int     `json:"max"`
 	Min       int     `json:"min"`
+	P90       int     `json:"p90"`
+	P50       int     `json:"p50"`
+	P10       int     `json:"p10"`
 	Count     int     `json:"count"`
 	Data      []int   `json:"data,omitempty"`
+}
+
+func perc(p float64, vals []int) int {
+	ix := int(math.Floor(float64(len(vals))*p + 0.5))
+	return vals[ix]
 }
 
 func summarize(s *Summary, vals []time.Duration, withData bool) {
@@ -91,6 +100,7 @@ func summarize(s *Summary, vals []time.Duration, withData bool) {
 		valid = append(valid, v)
 	}
 
+	// TODO(knorton): should this be len(valid)?
 	s.Count = n
 	s.LossRatio = 1.0 - float64(len(valid))/float64(n)
 
@@ -104,6 +114,8 @@ func summarize(s *Summary, vals []time.Duration, withData bool) {
 	if len(valid) == 0 {
 		return
 	}
+
+	sort.Ints(valid)
 
 	max := 0
 	min := 0x7fffffffffffffff
@@ -120,17 +132,12 @@ func summarize(s *Summary, vals []time.Duration, withData bool) {
 	}
 	mu /= float64(len(valid))
 
-	std := 0.0
-	for _, d := range valid {
-		x := float64(d) - mu
-		std += x * x
-	}
-	std = math.Sqrt(std / float64(len(valid)))
-
 	s.Avg = mu
-	s.Stddev = std
 	s.Max = int(max)
 	s.Min = int(min)
+	s.P10 = perc(0.1, valid)
+	s.P90 = perc(0.9, valid)
+	s.P50 = perc(0.5, valid)
 }
 
 func apiCurrent(cfg *config.Config, s *store.Store, w pork.ResponseWriter, r *http.Request) {
