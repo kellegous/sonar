@@ -193,7 +193,7 @@ module app {
 		var dy = rng.max - rng.min,
 			mag = Math.pow(10, Math.floor(log10(dy) - 1)),
 			facs = [1, 2, 5],
-			lim = 5,
+			lim = 3.5,
 			expand = (s: number) => {
 				var r = [],
 					b = ((rng.min / s)|0)*s;
@@ -206,7 +206,7 @@ module app {
 		while (true) {
 			for (var i = 0, n = facs.length; i < n; i++) {
 				var s = facs[i] * mag;
-				if (dy / s <= lim) {
+				if ((dy / s) <= lim) {
 					return {
 						rng: rng,
 						divs: expand(s),
@@ -218,15 +218,29 @@ module app {
 		}
 	}
 
+	function renderLossGraph(el: HTMLElement, report: Report) {
+		var rect = el.getBoundingClientRect(),
+			w = rect.width,
+			h = rect.height;
+
+		var svg = dom.create('svg', SVGNS)
+			.setAttrs({
+				width: w + 'px',
+				height: h + 'px'
+			})
+			.appendTo(el)
+			.rel();
+	}
+
 	function renderTimeGraph(el: HTMLElement, report: Report) {
 		var rect = el.getBoundingClientRect(),
 			w = rect.width,
-			h = rect.height,
+			h = rect.height - 20,
 			scale = scaleFor(rangeFrom(report.hourly)),
 			min = scale.rng.min,
 			max = scale.rng.max,
 			log = Math.floor(log10(scale.step)),
-			pad = 30,
+			pad = 35,
 			dx = (w - pad) / report.hourly.length,
 			dy = h / (max - min);
 
@@ -251,10 +265,16 @@ module app {
 				})
 				.appendTo(svg);
 
+			// if the text is likely to get clipped, don't show it.
+			if (y < 15) {
+				return;
+			}
+
 			dom.create('text', SVGNS)
 				.setAttrs({
 					x: 0,
 					y: y - 3,
+					fill: '#fff',
 					'font-family': 'Roboto',
 					'font-size': 9,
 				})
@@ -273,7 +293,8 @@ module app {
 					y: h - dy*hr.p90 + min*dy,
 					width: dx - 4,
 					height: (hr.p90 - hr.p10)*dy,
-					fill: "#f6f6f6",
+					// fill: '#f19fa7',
+					fill: '#a41742',
 				})
 				.appendTo(svg);
 
@@ -283,7 +304,7 @@ module app {
 					y: h - dy*hr.avg + min*dy,
 					width: dx - 4,
 					height: 2,
-					fill: '#09f',
+					fill: '#fff',
 				})
 				.appendTo(svg);
 		});
@@ -314,16 +335,28 @@ module app {
 					renderRow(host.el, (root, l, r) => {
 						root.addClass('time');
 						l.addClass('curr');
-						r.addClass('graf');
+
 						renderMs(l.el, report.currently.avg);
+						dom.create('div')
+							.addClass('label')
+							.setText('rtt')
+							.appendTo(l.el);
+
+						r.addClass('graf');
 						renderTimeGraph(r.el, report);
 					});
 
 					renderRow(host.el, (root, l, r) => {
 						root.addClass('loss');
+
 						l.addClass('curr');
-						r.addClass('graf');
 						formatLossPercent(l.el, report.currently.lossRatio);
+						dom.create('div')
+							.addClass('label')
+							.setText('loss')
+							.appendTo(l.el);
+
+						r.addClass('graf');
 					});
 				});
 		});

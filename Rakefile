@@ -1,37 +1,70 @@
 require 'fileutils'
 require './build'
 
-ENV['GOPATH'] = Dir.pwd
-
-ENV['PATH'] = "#{Dir.pwd}/bin:#{ENV['PATH']}"
+ENV['GOPATH'] = [
+	Dir.pwd,
+	File.join(Dir.pwd, 'deps'),
+].join(':')
 
 SRCS = FileList['src/sonar/**/*']
-DEPS = SRCS
+PROGS = ['deps/bin/go-bindata', 'deps/bin/pork']
+
+DEPS = SRCS + PROGS + ['src/sonar/web/internal/bindata.go']
+
 CMDS = FileList['src/sonar/cmds/*'].map do |f|
-  name = File.basename(f)
-  dest = File.join('bin', name)
-  file! dest => DEPS do |t|
-  	cmd = ['go', 'install']
-  	if ENV['dev'] == 'true'
-  		dir = File.absolute_path('src/sonar/web/assets')
-  		cmd << '-ldflags'
-  		cmd << "-X main.assetsDir=#{dir}"
+  	name = File.basename(f)
+  	dest = File.join('bin', name)
+  	file! dest => DEPS do |t|
+		cmd = ['go', 'install']
+		if ENV['dev'] == 'true'
+			dir = File.absolute_path('src/sonar/web/assets')
+			cmd << '-ldflags'
+			cmd << "-X main.assetsDir=#{dir}"
+  		end
+		cmd << "sonar/cmds/#{name}"
+		sh *cmd
+	end
+	dest
+end
+
+PROGS.each do |f|
+  	file! f => ['bin/grr'] do
+    	sh 'bin/grr', 'install'
   	end
-  	cmd << "sonar/cmds/#{name}"
-    sh *cmd
-  end
-  dest
+end
+
+file! 'src/sonar/web/internal/bindata.go' => PROGS + FileList['src/sonar/web/assets/**/*'] do |t|
+  sh 'deps/bin/pork',
+  		'build',
+  		'--out=dst/pub',
+  		'--opt=basic',
+  		'src/sonar/web/assets'
+
+  sh 'rsync',
+  		'-r',
+  		'--exclude=*.ts',
+  		'--exclude=*.scss',
+  		'src/sonar/web/assets/',
+  		'dst/pub'
+
+  sh 'deps/bin/go-bindata', '-o', t.name,
+    	'-pkg', 'internal',
+    	'-prefix', 'dst/pub',
+    	'-ignore', '(\.ts|\.scss)$',
+    	'dst/pub'
+end
+
+file! 'bin/grr' do
+  	sh 'go', 'get', 'github.com/kellegous/grr'
+  	FileUtils::rm_rf('src/github.com')
 end
 
 task :atom do
-  sh 'atom', '.'
+  	sh 'atom', '.'
 end
 
 task :subl do
-  sh 'subl', 'sonar.sublime-project'
-end
-
-task :test do
+  	sh 'subl', 'sonar.sublime-project'
 end
 
 task :default => CMDS

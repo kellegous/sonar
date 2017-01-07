@@ -3,3 +3,6 @@
 /sonar.sublime-workspace
 /src/sonar/vendor
 /etc/bin
+/src/sonar/web/internal/bindata.go
+/dst
+/deps
