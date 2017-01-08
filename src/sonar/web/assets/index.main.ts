@@ -12,7 +12,6 @@ module app {
 	}
 
 	interface Summary {
-		avg: number;
 		p10: number;
 		p50: number;
 		p90: number;
@@ -379,7 +378,7 @@ module app {
 			dom.create('rect', SVGNS)
 				.setAttrs({
 					x: pad + dx*i + 2,
-					y: h - dy*hr.avg + min*dy,
+					y: h - dy*hr.p50+ min*dy,
 					width: dx - 4,
 					height: 2,
 					fill: '#fff',
@@ -414,7 +413,7 @@ module app {
 						root.addClass('time');
 						l.addClass('curr');
 
-						renderMs(l.el, report.currently.avg);
+						renderMs(l.el, report.currently.p50);
 						dom.create('div')
 							.addClass('label')
 							.setText('rtt')
