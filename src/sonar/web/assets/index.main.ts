@@ -229,6 +229,8 @@ module app {
 			h = rect.height,
 			pad = 35,
 			lim = 0.25,
+			tpad = 20,
+			bpad = 2,
 			dx = (w - pad) / report.hourly.length;
 
 		var svg = dom.create('svg', SVGNS)
@@ -242,9 +244,9 @@ module app {
 		dom.create('line', SVGNS)
 			.setAttrs({
 				x1: 0,
-				y1: 14, // 12 on top, 2 on the bottom
+				y1: tpad - bpad,
 				x2: w,
-				y2: 14,
+				y2: tpad - bpad,
 				stroke: '#eee',
 				'stroke-dasharray': '1,4',
 			})
@@ -253,12 +255,12 @@ module app {
 		dom.create('text', SVGNS)
 			.setAttrs({
 				x: 0,
-				y: 14 + 12,
+				y: tpad - bpad + 10,
 				fill: '#fff',
 				'font-family': 'Roboto',
 				'font-size': 9,
 			})
-			.setText('25%')
+			.setText((lim*100 | 0) + '%')
 			.appendTo(svg);
 
 		report.hourly.forEach((hr: Hour, i: number) => {
@@ -270,11 +272,27 @@ module app {
 			dom.create('rect', SVGNS)
 				.setAttrs({
 					x: pad + dx*i + 3,
-					y: h - (h-12)*v - 2,
+					y: h - (h-tpad)*v - bpad,
 					width: dx - 6,
-					height: (h-12)*v,
+					height: (h-tpad)*v,
 					fill: '#eee',
 				})
+				.appendTo(svg);
+
+			var p = Math.min(99, (hr.lossRatio*100)|0);
+			if (p < 1) {
+				return;
+			}
+
+			dom.create('text', SVGNS)
+				.setAttrs({
+					x: pad + dx*i + (p > 9 ? 1 : 4),
+					y: h - (h-tpad)*v - 5,
+					fill: '#fff',
+					'font-family': 'Roboto',
+					'font-size': 8,
+				})
+				.setText(p + '%')
 				.appendTo(svg);
 		});
 	}
