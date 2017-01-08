@@ -51,6 +51,9 @@ header {
 
 			&.loss {
 				background-color: #666;
+				>.l {
+					padding: 10px 30px 10px 0;
+				}
 			}
 
 			font-size: 42px;

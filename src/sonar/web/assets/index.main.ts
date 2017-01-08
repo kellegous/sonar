@@ -87,6 +87,11 @@ module app {
 		el.appendChild(uel);
 	}
 
+	function formatHour(dt: Date) : string {
+		var h = '' + dt.getHours();
+		return h.length == 1 ? '0' + h : h;
+	}
+
 	interface Report {
 		ip: string;
 		name: string;
@@ -221,7 +226,10 @@ module app {
 	function renderLossGraph(el: HTMLElement, report: Report) {
 		var rect = el.getBoundingClientRect(),
 			w = rect.width,
-			h = rect.height;
+			h = rect.height,
+			pad = 35,
+			lim = 0.25,
+			dx = (w - pad) / report.hourly.length;
 
 		var svg = dom.create('svg', SVGNS)
 			.setAttrs({
@@ -230,6 +238,45 @@ module app {
 			})
 			.appendTo(el)
 			.rel();
+
+		dom.create('line', SVGNS)
+			.setAttrs({
+				x1: 0,
+				y1: 14, // 12 on top, 2 on the bottom
+				x2: w,
+				y2: 14,
+				stroke: '#eee',
+				'stroke-dasharray': '1,4',
+			})
+			.appendTo(svg);
+
+		dom.create('text', SVGNS)
+			.setAttrs({
+				x: 0,
+				y: 14 + 12,
+				fill: '#fff',
+				'font-family': 'Roboto',
+				'font-size': 9,
+			})
+			.setText('25%')
+			.appendTo(svg);
+
+		report.hourly.forEach((hr: Hour, i: number) => {
+			if (hr.lossRatio < 0.001) {
+				return;
+			}
+
+			var v = Math.min(lim, hr.lossRatio)/lim;
+			dom.create('rect', SVGNS)
+				.setAttrs({
+					x: pad + dx*i + 3,
+					y: h - (h-12)*v - 2,
+					width: dx - 6,
+					height: (h-12)*v,
+					fill: '#eee',
+				})
+				.appendTo(svg);
+		});
 	}
 
 	function renderTimeGraph(el: HTMLElement, report: Report) {
@@ -247,7 +294,7 @@ module app {
 		var svg = dom.of(document.createElementNS(SVGNS, 'svg'))
 			.setAttrs({
 				width: w + 'px',
-				height: h + 'px',
+				height: rect.height + 'px',
 			})
 			.appendTo(el)
 			.rel();
@@ -261,7 +308,7 @@ module app {
 					x2: w,
 					y2: y,
 					stroke: '#eee',
-					'stroke-dasharray': '4,2',
+					'stroke-dasharray': '1,4',
 				})
 				.appendTo(svg);
 
@@ -283,18 +330,31 @@ module app {
 		});
 
 		report.hourly.forEach((hr: Hour, i: number) => {
+			var t = new Date(Date.parse(hr.time));
+			dom.create('text', SVGNS)
+				.setAttrs({
+					x: pad + dx*i + 3,
+					y: h + 15,
+					fill: '#fff',
+					'font-family': 'Roboto',
+					'font-size': 9,
+				})
+				.setText(formatHour(t))
+				.appendTo(svg);
+
 			if (hr.count == 0) {
 				return;
 			}
 			
 			dom.create('rect', SVGNS)
 				.setAttrs({
-					x: pad + dx*i + 2,
+					x: pad + dx*i + 3,
 					y: h - dy*hr.p90 + min*dy,
-					width: dx - 4,
+					width: dx - 6,
 					height: (hr.p90 - hr.p10)*dy,
 					// fill: '#f19fa7',
 					fill: '#a41742',
+					// fill: 'rgba(164,23,66,0.6)',
 				})
 				.appendTo(svg);
 
@@ -357,6 +417,7 @@ module app {
 							.appendTo(l.el);
 
 						r.addClass('graf');
+						renderLossGraph(r.el, report);
 					});
 				});
 		});
