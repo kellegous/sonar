@@ -23,11 +23,13 @@ func (c *content) ServePork(w pork.ResponseWriter, r *http.Request) {
 	n, err := internal.AssetInfo(path)
 	if err != nil {
 		w.ServeNotFound()
+		return
 	}
 
 	a, err := internal.Asset(path)
 	if err != nil {
 		w.ServeNotFound()
+		return
 	}
 
 	http.ServeContent(w, r, n.Name(), n.ModTime(), bytes.NewReader(a))

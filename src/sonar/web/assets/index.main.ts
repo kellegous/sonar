@@ -278,20 +278,22 @@ module app {
 				})
 				.appendTo(svg);
 
-			var p = Math.min(99, (hr.lossRatio*100)|0);
-			if (p < 1) {
-				return;
-			}
+				// the loss ratio, capped at 99
+			var p = Math.min(99, (hr.lossRatio*100)|0),
+				// the text to display
+				t = (p < 1) ? '<1' : ('' + p),
+				// the padding to use for that text
+				pw = (p > 9 || p < 1) ? 1 : 4;
 
 			dom.create('text', SVGNS)
 				.setAttrs({
-					x: pad + dx*i + (p > 9 ? 1 : 4),
+					x: pad + dx*i + pw,
 					y: h - (h-tpad)*v - 5,
 					fill: '#fff',
 					'font-family': 'Roboto',
 					'font-size': 8,
 				})
-				.setText(p + '%')
+				.setText(t + '%')
 				.appendTo(svg);
 		});
 	}
