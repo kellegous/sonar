@@ -5,4 +5,6 @@
 /etc/bin
 /src/sonar/web/internal/bindata.go
 /dst
-/deps
+/vendor/src
+/vendor/pkg
+/vendor/bin

@@ -3,11 +3,11 @@ require './build'
 
 ENV['GOPATH'] = [
 	Dir.pwd,
-	File.join(Dir.pwd, 'deps'),
+	File.join(Dir.pwd, 'vendor'),
 ].join(':')
 
 SRCS = FileList['src/sonar/**/*']
-PROGS = ['deps/bin/go-bindata', 'deps/bin/pork']
+PROGS = ['vendor/bin/go-bindata', 'vendor/bin/pork']
 
 DEPS = SRCS + PROGS + ['src/sonar/web/internal/bindata.go']
 
@@ -34,7 +34,7 @@ PROGS.each do |f|
 end
 
 file! 'src/sonar/web/internal/bindata.go' => PROGS + FileList['src/sonar/web/assets/**/*'] do |t|
-  sh 'deps/bin/pork',
+  sh 'vendor/bin/pork',
   		'build',
   		'--out=dst/pub',
   		'--opt=basic',
@@ -47,7 +47,7 @@ file! 'src/sonar/web/internal/bindata.go' => PROGS + FileList['src/sonar/web/ass
   		'src/sonar/web/assets/',
   		'dst/pub'
 
-  sh 'deps/bin/go-bindata', '-o', t.name,
+  sh 'vendor/bin/go-bindata', '-o', t.name,
     	'-pkg', 'internal',
     	'-prefix', 'dst/pub',
     	'-ignore', '(\.ts|\.scss)$',
@@ -55,7 +55,7 @@ file! 'src/sonar/web/internal/bindata.go' => PROGS + FileList['src/sonar/web/ass
 end
 
 file! 'bin/grr' do
-  	sh 'go', 'get', 'github.com/kellegous/grr'
+  	sh 'go', 'get', '-u', 'github.com/kellegous/grr'
   	FileUtils::rm_rf('src/github.com')
 end
 

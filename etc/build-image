@@ -60,7 +60,7 @@ def Build(root, here):
             '-v', '%s:/src' % root,
             '-v', '%s:/src/bin' % dest,
             # TODO(knorton): Fix this bullshit
-            '-v', '%s:/src/deps/bin' % tmp,
+            '-v', '%s:/src/vendor/bin' % tmp,
             '-w', '/src',
             'kellegous/build',
             'rake',
