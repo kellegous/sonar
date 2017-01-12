@@ -2,8 +2,10 @@
 
 import argparse
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 
 class Image(object):
     def __init__(self, name, tag, dockerfile):
@@ -44,17 +46,27 @@ def Build(root, here):
     dest = os.path.join(here, 'bin')
     if not os.path.exists(dest):
         os.makedirs(dest)
-    return subprocess.call([
-        'docker',
-        'run',
-        '-ti',
-        '--rm',
-        '-v', '%s:/src' % root,
-        '-v', '%s:/src/bin' % dest,
-        '-w', '/src',
-        'kellegous/build',
-        'rake',
-    ]) == 0
+
+    tmp = os.path.join(root, 'tmp')
+    if not os.path.exists(tmp):
+        os.makedirs(tmp)
+
+    try:
+        return subprocess.call([
+            'docker',
+            'run',
+            '-ti',
+            '--rm',
+            '-v', '%s:/src' % root,
+            '-v', '%s:/src/bin' % dest,
+            # TODO(knorton): Fix this bullshit
+            '-v', '%s:/src/deps/bin' % tmp,
+            '-w', '/src',
+            'kellegous/build',
+            'rake',
+        ]) == 0
+    finally:
+        shutil.rmtree(tmp)
 
 def GetHead(root):
     p = subprocess.Popen([
