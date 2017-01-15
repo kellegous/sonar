@@ -61,6 +61,7 @@ def Build(root, here):
             '-v', '%s:/src/bin' % dest,
             # TODO(knorton): Fix this bullshit
             '-v', '%s:/src/vendor/bin' % tmp,
+            '-v', '%s:/src/vendor/manifest' % os.path.join(root, 'vendor/manifest'),
             '-w', '/src',
             'kellegous/build',
             'rake',
