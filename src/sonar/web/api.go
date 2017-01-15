@@ -78,8 +78,16 @@ type Summary struct {
 }
 
 func perc(p float64, vals []int) int {
-	ix := int(math.Floor(float64(len(vals))*p + 0.5))
-	return vals[ix]
+	// get the precise location for this percentile
+	ix := float64(len(vals))*p - 0.5
+
+	// split this into integral and fractional
+	pi, pf := math.Modf(ix)
+
+	// interpolate the value from the two referenced locations
+	v := float64(vals[int(pi)])*(1-pf) + float64(vals[int(pi)+1])*pf
+
+	return int(v)
 }
 
 func summarize(s *Summary, vals []time.Duration, withData bool) {
