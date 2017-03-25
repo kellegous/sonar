@@ -84,6 +84,10 @@ func perc(p float64, vals []int) int {
 	// split this into integral and fractional
 	pi, pf := math.Modf(ix)
 
+	if int(pi) < 0 || int(pi) >= len(vals) {
+		log.Printf("pi = %d, len = %d\n", int(pi), len(vals))
+	}
+
 	// interpolate the value from the two referenced locations
 	v := float64(vals[int(pi)])*(1-pf) + float64(vals[int(pi)+1])*pf
 
