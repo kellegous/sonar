@@ -1,0 +1,20 @@
+addr = ":7699"
+data-path = "data"
+samples-per-period = 10
+sample-period = "1min"
+
+[[hosts]]
+ip = "8.8.8.8"
+name = "Google"
+
+[[hosts]]
+ip = "77.88.8.8"
+name = "Russia (Yandex)"
+
+[[hosts]]
+ip = "91.239.100.100"
+name = "Copenhagen, Denmark"
+
+[[hosts]]
+ip = "125.227.80.43"
+name = "Beijing, China"
