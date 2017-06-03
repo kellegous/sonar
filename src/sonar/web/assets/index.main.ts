@@ -194,6 +194,10 @@ module app {
 	}
 
 	function scaleFor(rng: Range) : Scale {
+		if (rng.min == 0 && rng.max == 0) {
+			return scaleFor({min: 0, max: 1});
+		}
+
 		var dy = rng.max - rng.min,
 			mag = Math.pow(10, Math.floor(log10(dy) - 1)),
 			facs = [1, 2, 5],
