@@ -3,7 +3,6 @@ package web
 import (
 	"encoding/json"
 	"log"
-	"math"
 	"net"
 	"net/http"
 	"sort"
@@ -83,16 +82,19 @@ func perc(p float64, vals []int) int {
 		return vals[0]
 	}
 
+	ix := int(float64(len(vals)) * p)
+
+	return vals[ix]
 	// get the precise location for this percentile
-	ix := float64(len(vals))*p - 0.5
+	// ix := float64(len(vals))*p - 0.5
 
 	// split this into integral and fractional
-	pi, pf := math.Modf(ix)
+	// pi, pf := math.Modf(ix)
 
 	// interpolate the value from the two referenced locations
-	v := float64(vals[int(pi)])*(1-pf) + float64(vals[int(pi)+1])*pf
+	// v := float64(vals[int(pi)])*(1-pf) + float64(vals[int(pi)+1])*pf
 
-	return int(v)
+	// return int(v)
 }
 
 func summarize(s *Summary, vals []time.Duration, withData bool) {
