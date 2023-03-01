@@ -37,8 +37,10 @@ clean:
 nuke: clean
 	rm -rf node_modules
 
+push-docker: bin/buildimg Dockerfile $(shell find cmd pkg ui -type f)
+	bin/buildimg --tag=$(TAG) --target=linux/amd64 --target=linux/arm64 kellegous/sonar
+
 sonar-$(TAG).tar: bin/buildimg Dockerfile $(shell find cmd pkg ui -type f)
 	bin/buildimg --tag=$(TAG) --target=linux/amd64:$@ kellegous/sonar
 
-publish: bin/buildimg Dockerfile $(shell find cmd pkg ui -type f)
-	bin/buildimg --tag=$(TAG) --target=linux/amd64 --target=linux/arm64 kellegous/sonar
+publish: sonar-$(TAG).tar

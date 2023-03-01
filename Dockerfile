@@ -10,6 +10,6 @@ RUN apt-get update \
   && apt-get install -y ca-certificates tzdata \
   && apt-get clean
 
-COPY /src/bin/sonard /usr/local/bin/sonard
+COPY --from=build /src/bin/sonard /usr/local/bin/sonard
 
 CMD ["/usr/local/bin/sonard", "--conf=/data/sonar.toml"]
