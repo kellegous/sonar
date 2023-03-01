@@ -44,3 +44,4 @@ sonar-$(TAG).tar: bin/buildimg Dockerfile $(shell find cmd pkg ui -type f)
 	bin/buildimg --tag=$(TAG) --target=linux/amd64:$@ kellegous/sonar
 
 publish: sonar-$(TAG).tar
+	sup host image load @ $<
