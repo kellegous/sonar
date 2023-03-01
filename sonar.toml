@@ -1,7 +1,7 @@
 addr = ":7699"
 data-path = "data"
 samples-per-period = 10
-sample-period = "1min"
+sample-period = "1m"
 
 [[hosts]]
 ip = "8.8.8.8"

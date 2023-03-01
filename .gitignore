@@ -1,10 +1,4 @@
+/pkg/web/ui
+/node_modules
 /bin
-/pkg
-/sonar.sublime-workspace
-/src/sonar/vendor
-/etc/bin
-/src/sonar/web/internal/bindata.go
-/dst
-/vendor/src
-/vendor/pkg
-/vendor/bin
+/data

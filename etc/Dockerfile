@@ -1,11 +1,15 @@
-FROM ubuntu:xenial
+FROM kellegous/build:22f1124f as build
 
-COPY bin/sonard /usr/local/bin/sonard
+COPY . /src
+
+RUN cd /src && make nuke ALL
+
+FROM ubuntu:jammy
 
 RUN apt-get update \
-  && apt-get install -y ca-certificates \
+  && apt-get install -y ca-certificates tzdata \
   && apt-get clean
 
-EXPOSE 7676
+COPY /src/bin/sonard /usr/local/bin/sonard
 
 CMD ["/usr/local/bin/sonard", "--conf=/data/sonar.toml"]
