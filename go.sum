@@ -132,8 +132,8 @@ github.com/jsimonetti/rtnetlink v1.1.2-0.20220408201609-d380b505068b/go.mod h1:T
 github.com/json-iterator/go v1.1.9/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/uOdHXbAo4=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
-github.com/kellegous/buildimg v1.0.0 h1:n7++4fio//TObcBSkHEiyQG8Z9xeUJ4x2q7CeA55GNA=
-github.com/kellegous/buildimg v1.0.0/go.mod h1:vZ+/Erxq3l6gFlU026D+pE8WAUvI3EGdpk0knzaJRyE=
+github.com/kellegous/buildimg v1.1.0 h1:/L531UYIuLs9NkzjPtISK/lN7cQeH0FWZ93fwog9w/g=
+github.com/kellegous/buildimg v1.1.0/go.mod h1:vZ+/Erxq3l6gFlU026D+pE8WAUvI3EGdpk0knzaJRyE=
 github.com/kellegous/buildname v0.0.0-20200713164929-6b7d76d908db h1:91FwOEQYR75Wu0Ns5GO6O2LvNEaR5+V8/GQ0r9cWP2o=
 github.com/kellegous/buildname v0.0.0-20200713164929-6b7d76d908db/go.mod h1:U4jhZ1MC5Osrf7oJsJJya8f4WTxLel8YyhzRKHojcgA=
 github.com/kellegous/render_html v0.0.0-20200424232036-480e7fde8d33 h1:qCR6Lzay/9ijxXNNMQ96yfj1xUvzzWMtqhIyKRN7yas=
@@ -352,5 +352,5 @@ inet.af/wf v0.0.0-20220728202103-50d96caab2f6 h1:BfgDtKnWJTeu+xI1aOEweXdPwqOhB3I
 nhooyr.io/websocket v1.8.7 h1:usjR2uOr/zjjkVMy0lW+PPohFok7PCow5sDjLgX4P4g=
 nhooyr.io/websocket v1.8.7/go.mod h1:B70DZP8IakI65RVQ51MsWP/8jndNma26DVA/nFSCgW0=
 software.sslmate.com/src/go-pkcs12 v0.2.0 h1:nlFkj7bTysH6VkC4fGphtjXRbezREPgrHuJG20hBGPE=
-tailscale.com v1.38.2 h1:y3yzwjZt/ScNomupMm5NMhfPfrH8lrZYuOvoYZKpd+g=
-tailscale.com v1.38.2/go.mod h1:UWLQxcd8dz+lds2I+HpfXSruHrvXM1j4zd4zdx86t7w=
+tailscale.com v1.38.3 h1:2aX3+u0Re8QcN6nq7zf9Aa4ZCR2Nf6Imv3isqdQrb58=
+tailscale.com v1.38.3/go.mod h1:UWLQxcd8dz+lds2I+HpfXSruHrvXM1j4zd4zdx86t7w=
