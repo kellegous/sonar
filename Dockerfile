@@ -1,4 +1,4 @@
-FROM kellegous/build:e12b9a31 as build
+FROM kellegous/build:b58c3fe8 as build
 
 COPY . /src
 
