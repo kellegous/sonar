@@ -11,7 +11,7 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/net v0.17.0
-	tailscale.com v1.52.0
+	tailscale.com v1.52.1
 )
 
 require (
