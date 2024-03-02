@@ -9,9 +9,9 @@ require (
 	github.com/kellegous/render_html v0.0.0-20200424232036-480e7fde8d33
 	github.com/kellegous/tsweb v0.1.0
 	github.com/syndtr/goleveldb v1.0.0
-	go.uber.org/zap v1.26.0
+	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.21.0
-	tailscale.com v1.60.0
+	tailscale.com v1.60.1
 )
 
 require (
