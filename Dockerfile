@@ -4,12 +4,12 @@ COPY . /src
 
 RUN cd /src && make nuke ALL
 
-FROM ubuntu:jammy
+FROM lsiobase/debian:bookworm
 
 RUN apt-get update \
-  && apt-get install -y ca-certificates tzdata \
+  && apt-get install -y ca-certificates tzdata jq iptables \
   && apt-get clean
 
 COPY --from=build /src/bin/sonard /usr/local/bin/sonard
 
-CMD ["/usr/local/bin/sonard", "--conf=/data/sonar.toml"]
+CMD ["/usr/bin/with-contenv", "/usr/local/bin/sonard", "--conf=/data/sonar.toml"]
