@@ -11,7 +11,7 @@ import (
 
 const (
 	DefaultSamplePeriod     = 30 * time.Second
-	DefaultAddr             = ":7699"
+	DefaultAddr             = ":8080"
 	DefaultSamplesPerPeriod = 10
 	DefaultDataPath         = "data"
 )
@@ -22,11 +22,6 @@ type Config struct {
 	SamplePeriod     time.Duration `toml:"sample-period"`
 	Hosts            []*Host       `toml:"hosts"`
 	Addr             string        `toml:"addr"`
-	Tailscale        Tailscale     `toml:"tailscale"`
-}
-
-func (c *Config) UseTailscale() bool {
-	return c.Tailscale.AuthKey != ""
 }
 
 func (c *Config) applyDefaults(base string) {
@@ -49,8 +44,6 @@ func (c *Config) applyDefaults(base string) {
 	if !filepath.IsAbs(c.DataPath) {
 		c.DataPath = filepath.Join(base, c.DataPath)
 	}
-
-	c.Tailscale.applyDefaults(base)
 }
 
 func (c *Config) ReadFile(filename string) error {
