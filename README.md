@@ -7,7 +7,7 @@ I'm working on a proper README, but here's how you can use this thing right now 
  1. `mkdir data`
  2. Create the file `data/sonar.toml` with the following contents:
 ```
-addr = ":7699"
+addr = ":8080"
 data-path = "data"
 samples-per-period = 10
 sample-period = "1min"
@@ -28,4 +28,4 @@ name = "Copenhagen, Denmark"
 ip = "125.227.80.43"
 name = "Beijing, China"
 ```
- 3. `docker run -ti --rm -v $(pwd)/data:/data -p 7699:7699 kellegous/sonar`
+ 3. `docker run -ti --rm -v $(pwd)/data:/data -p 8080:8080 kellegous/sonar`
