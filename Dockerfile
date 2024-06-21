@@ -12,4 +12,6 @@ RUN apt-get update \
 
 COPY --from=build /src/bin/sonard /usr/local/bin/sonard
 
+EXPOSE 8080
+
 CMD ["/usr/bin/with-contenv", "/usr/local/bin/sonard", "--conf=/data/sonar.toml"]
