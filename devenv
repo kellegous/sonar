@@ -1,9 +1,0 @@
-#!/bin/bash
-
-docker run -ti --rm \
-	-p 7699:7699 \
-	-v $(pwd):/src \
-	-w /src \
-	--platform=linux/$(go env GOARCH) \
-	kellegous/build:22f1124f \
-	/bin/bash
