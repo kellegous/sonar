@@ -15,6 +15,7 @@ import (
 
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json;charset=utf-8")
+	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		log.Panic(err)
 	}
@@ -29,17 +30,6 @@ func writeJSONOk(w http.ResponseWriter, data interface{}) {
 		data,
 	}
 	writeJSON(w, http.StatusOK, &r)
-}
-
-func writeJSONErr(w http.ResponseWriter, status int, err error) {
-	r := struct {
-		Ok  bool   `json:"ok"`
-		Err string `json:"error"`
-	}{
-		false,
-		err.Error(),
-	}
-	writeJSON(w, status, &r)
 }
 
 type current struct {
@@ -220,9 +210,7 @@ func apiByHour(
 				if ix < 0 || ix > hrs {
 					return nil
 				}
-				for _, val := range vals {
-					data[ix] = append(data[ix], val)
-				}
+				data[ix] = append(data[ix], vals...)
 				return nil
 			}); err != nil {
 			log.Panic(err)
