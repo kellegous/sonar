@@ -1,4 +1,4 @@
-/pkg/ui/assets
+/internal/ui/assets
 /node_modules
 /bin
 /data

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kellegous/sonar/pkg/store"
+	"github.com/kellegous/sonar/internal/store"
 )
 
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {

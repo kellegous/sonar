@@ -2,13 +2,13 @@ SHA := $(shell git rev-parse HEAD)
 TAG := $(shell git rev-parse --short HEAD)
 
 ASSETS := \
-	pkg/ui/assets/index.html
+	internal/ui/assets/index.html
 
-.PHONY: ALL test clean nuke publish
+.PHONY: ALL test clean nuke publish push-docker sonar-$(TAG).tar
 
 ALL: bin/sonard
 
-bin/%: cmd/%/main.go $(ASSETS) $(shell find pkg -type f)
+bin/%: cmd/%/main.go $(ASSETS) $(shell find internal -type f)
 	go build -o $@ ./cmd/$*
 
 bin/buildname:
@@ -17,7 +17,7 @@ bin/buildname:
 bin/buildimg:
 	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/buildimg@latest
 
-pkg/ui/assets/index.html: node_modules/.build bin/buildname $(shell find ui -type f)
+internal/ui/assets/index.html: node_modules/.build bin/buildname $(shell find ui -type f)
 	SHA="$(SHA)" BUILD_NAME="$(shell bin/buildname $(SHA))" npm run build
 
 node_modules/.build:
@@ -25,21 +25,21 @@ node_modules/.build:
 	touch $@
 
 develop: bin/sonard bin/devserver
-	sudo bin/devserver
+	bin/devserver
 
 test:
-	go test ./pkg/...
+	go test ./internal/...
 
 clean:
-	rm -rf bin pkg/ui/assets
+	rm -rf bin internal/ui/assets
 
 nuke: clean
 	rm -rf node_modules
 
-push-docker: bin/buildimg Dockerfile $(shell find cmd pkg ui -type f)
+push-docker: bin/buildimg
 	bin/buildimg --tag=$(TAG) --target=linux/amd64 --target=linux/arm64 kellegous/sonar
 
-sonar-$(TAG).tar: bin/buildimg Dockerfile $(shell find cmd pkg ui -type f)
+sonar-$(TAG).tar: bin/buildimg
 	bin/buildimg --tag=$(TAG) --target=linux/amd64:$@ kellegous/sonar
 
 publish: sonar-$(TAG).tar

@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kellegous/sonar/pkg/config"
-	"github.com/kellegous/sonar/pkg/store"
+	"github.com/kellegous/sonar/internal/config"
+	"github.com/kellegous/sonar/internal/store"
 )
 
 type Server struct {

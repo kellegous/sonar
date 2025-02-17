@@ -13,12 +13,12 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/kellegous/sonar/pkg/config"
-	"github.com/kellegous/sonar/pkg/logging"
-	"github.com/kellegous/sonar/pkg/ping"
-	"github.com/kellegous/sonar/pkg/store"
-	"github.com/kellegous/sonar/pkg/ui"
-	"github.com/kellegous/sonar/pkg/web"
+	"github.com/kellegous/sonar/internal/config"
+	"github.com/kellegous/sonar/internal/logging"
+	"github.com/kellegous/sonar/internal/ping"
+	"github.com/kellegous/sonar/internal/store"
+	"github.com/kellegous/sonar/internal/ui"
+	"github.com/kellegous/sonar/internal/web"
 )
 
 func idFor(ip net.IP) int {

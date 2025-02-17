@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"os/signal"
 
-	"github.com/kellegous/sonar/pkg/build"
+	"github.com/kellegous/sonar/internal/build"
 )
 
 const defaultVitePort = 3001
@@ -47,9 +47,11 @@ func startSonar(
 ) error {
 	c := exec.CommandContext(
 		ctx,
+		"sudo",
 		"bin/sonard",
 		fmt.Sprintf("--web.asset-proxy-url=%s", proxyURL))
 	c.Dir = root
+	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	return c.Start()
