@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/BurntSushi/toml v1.4.0
+	github.com/kellegous/buildname v0.0.0-20200713164929-6b7d76d908db
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/net v0.35.0

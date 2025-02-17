@@ -2,7 +2,9 @@ SHA := $(shell git rev-parse HEAD)
 TAG := $(shell git rev-parse --short HEAD)
 
 ASSETS := \
-	pkg/web/ui/index.html
+	pkg/ui/assets/index.html
+
+.PHONY: ALL test clean nuke publish
 
 ALL: bin/sonard
 
@@ -15,18 +17,21 @@ bin/buildname:
 bin/buildimg:
 	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/buildimg@latest
 
-pkg/web/ui/index.html: node_modules/.build bin/buildname $(shell find ui -type f)
+pkg/ui/assets/index.html: node_modules/.build bin/buildname $(shell find ui -type f)
 	SHA="$(SHA)" BUILD_NAME="$(shell bin/buildname $(SHA))" npm run build
 
 node_modules/.build:
 	npm install
 	touch $@
 
+develop: bin/sonard bin/devserver
+	sudo bin/devserver
+
 test:
 	go test ./pkg/...
 
 clean:
-	rm -rf bin pkg/web/ui/
+	rm -rf bin pkg/ui/assets
 
 nuke: clean
 	rm -rf node_modules

@@ -11,7 +11,7 @@ export default defineConfig({
 	root: 'ui',
 	publicDir: 'pub',
 	build: {
-		outDir: '../pkg/web/ui',
+		outDir: '../pkg/ui/assets',
 		assetsDir: '.',
 		emptyOutDir: true,
 	}

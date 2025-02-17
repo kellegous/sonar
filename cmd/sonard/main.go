@@ -6,6 +6,9 @@ import (
 	"hash/fnv"
 	"log"
 	"net"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"time"
 
 	"go.uber.org/zap"
@@ -14,6 +17,7 @@ import (
 	"github.com/kellegous/sonar/pkg/logging"
 	"github.com/kellegous/sonar/pkg/ping"
 	"github.com/kellegous/sonar/pkg/store"
+	"github.com/kellegous/sonar/pkg/ui"
 	"github.com/kellegous/sonar/pkg/web"
 )
 
@@ -54,26 +58,48 @@ func monitor(cfg *config.Config, s *store.Store) {
 	}
 }
 
-type Flags struct {
-	ConfigFile string
-	DevRoot    string
+func proxyTo(u *url.URL) http.Handler {
+	p := httputil.NewSingleHostReverseProxy(u)
+	dir := p.Director
+	p.Director = func(r *http.Request) {
+		dir(r)
+		r.Host = u.Host
+	}
+	return p
 }
 
-func (f *Flags) Register(fs *flag.FlagSet) {
-	fs.StringVar(
-		&f.ConfigFile,
+func getAssets(proxyURL string) (http.Handler, error) {
+	if proxyURL == "" {
+		return ui.Assets()
+	}
+
+	u, err := url.Parse(proxyURL)
+	if err != nil {
+		return nil, err
+	}
+
+	return proxyTo(u), nil
+}
+
+func main() {
+	var flags struct {
+		ConfigFile string
+		Web        struct {
+			AssetProxyURL string
+		}
+	}
+
+	flag.StringVar(
+		&flags.ConfigFile,
 		"conf",
 		"sonar.toml",
 		"the config file for the service")
-	fs.StringVar(
-		&f.DevRoot,
-		"dev-root",
+
+	flag.StringVar(
+		&flags.Web.AssetProxyURL,
+		"web.asset-proxy-url",
 		"",
-		"enable rebuilding web assets for development")
-}
-func main() {
-	var flags Flags
-	flags.Register(flag.CommandLine)
+		"the URL to use for the asset proxy")
 	flag.Parse()
 
 	lg := logging.MustSetup()
@@ -93,6 +119,12 @@ func main() {
 			zap.Error(err))
 	}
 
+	assets, err := getAssets(flags.Web.AssetProxyURL)
+	if err != nil {
+		lg.Fatal("unable to load assets",
+			zap.Error(err))
+	}
+
 	go monitor(&cfg, s)
 
 	svr := &web.Server{
@@ -100,9 +132,7 @@ func main() {
 		Store:  s,
 	}
 
-	if err := svr.ListenAndServe(ctx, &web.Options{
-		UseDevRoot: flags.DevRoot,
-	}); err != nil {
+	if err := svr.ListenAndServe(ctx, assets); err != nil {
 		lg.Fatal("unable to serve web traffic",
 			zap.Error(err))
 	}

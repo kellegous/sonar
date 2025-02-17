@@ -15,14 +15,9 @@ type Server struct {
 
 func (s *Server) ListenAndServe(
 	ctx context.Context,
-	opts *Options,
+	assets http.Handler,
 ) error {
 	m := http.NewServeMux()
-
-	content, err := getContent(ctx, opts)
-	if err != nil {
-		return err
-	}
 
 	m.HandleFunc(
 		"/api/v1/current",
@@ -35,7 +30,8 @@ func (s *Server) ListenAndServe(
 		func(w http.ResponseWriter, r *http.Request) {
 			apiByHour(w, r, s)
 		})
-	m.Handle("/", http.FileServer(content))
+
+	m.Handle("/", assets)
 
 	return http.ListenAndServe(s.Config.Addr, m)
 }
