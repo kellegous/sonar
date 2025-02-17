@@ -8,8 +8,11 @@ ASSETS := \
 
 ALL: bin/sonard
 
-bin/%: cmd/%/main.go $(ASSETS) $(shell find internal -type f)
-	go build -o $@ ./cmd/$*
+bin/sonard: cmd/sonard/main.go $(ASSETS) $(shell find internal -type f)
+	go build -o $@ ./cmd/sonard
+
+bin/devserver: cmd/devserver/main.go $(shell find internal -type f)
+	go build -o $@ ./cmd/devserver
 
 bin/buildname:
 	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/buildname/cmd/buildname@latest
