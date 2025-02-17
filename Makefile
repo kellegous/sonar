@@ -10,13 +10,13 @@ bin/%: cmd/%/main.go $(ASSETS) $(shell find pkg ui -type f)
 	go build -o $@ ./cmd/$*
 
 bin/render_html:
-	go build -o $@ github.com/kellegous/render_html
+	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/render_html@latest
 
 bin/buildname:
-	go build -o $@ github.com/kellegous/buildname/cmd/buildname
+	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/buildname/cmd/buildname@latest
 
 bin/buildimg:
-	go build -o $@ github.com/kellegous/buildimg
+	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/buildimg@latest
 
 pkg/web/ui/index.html: ui/index.html bin/render_html bin/buildname
 	bin/render_html -v build.sha="$(SHA)" -v build.name="$(shell bin/buildname $(SHA))" $< $@
