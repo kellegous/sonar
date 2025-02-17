@@ -1,16 +1,13 @@
 SHA := $(shell git rev-parse HEAD)
 TAG := $(shell git rev-parse --short HEAD)
 
-ASSETS := pkg/web/ui/index.html \
-	pkg/web/ui/index.js
+ASSETS := \
+	pkg/web/ui/index.html
 
 ALL: bin/sonard
 
-bin/%: cmd/%/main.go $(ASSETS) $(shell find pkg ui -type f)
+bin/%: cmd/%/main.go $(ASSETS) $(shell find pkg -type f)
 	go build -o $@ ./cmd/$*
-
-bin/render_html:
-	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/render_html@latest
 
 bin/buildname:
 	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/buildname/cmd/buildname@latest
@@ -18,21 +15,18 @@ bin/buildname:
 bin/buildimg:
 	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/buildimg@latest
 
-pkg/web/ui/index.html: ui/index.html bin/render_html bin/buildname
-	bin/render_html -v build.sha="$(SHA)" -v build.name="$(shell bin/buildname $(SHA))" $< $@
+pkg/web/ui/index.html: node_modules/.build bin/buildname $(shell find ui -type f)
+	SHA="$(SHA)" BUILD_NAME="$(shell bin/buildname $(SHA))" npm run build
 
-node_modules/build:
-	npm install --verbose
-	date > $@
-
-pkg/web/ui/index.js: $(shell find ui -type f) node_modules/build
-	npx webpack --mode=production
+node_modules/.build:
+	npm install
+	touch $@
 
 test:
 	go test ./pkg/...
 
 clean:
-	rm -rf bin $(ASSETS)
+	rm -rf bin pkg/web/ui/
 
 nuke: clean
 	rm -rf node_modules
