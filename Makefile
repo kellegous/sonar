@@ -1,5 +1,3 @@
-SHA := $(shell git rev-parse HEAD)
-
 ifndef SHA
 	SHA := $(shell git rev-parse HEAD)
 endif
