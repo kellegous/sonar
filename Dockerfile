@@ -1,8 +1,11 @@
 FROM kellegous/build:f1799259 AS build
 
+ARG SHA
+ARG BUILD_TIME
+
 COPY . /src
 
-RUN cd /src && make nuke ALL
+RUN cd /src && make SHA=${SHA} BUILD_TIME=${BUILD_TIME} nuke ALL
 
 FROM lsiobase/debian:bookworm
 
