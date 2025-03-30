@@ -1,10 +1,5 @@
-ifndef SHA
-	SHA := $(shell git rev-parse HEAD)
-endif
-
-ifndef BUILD_TIME
-	BUILD_TIME := $(shell git show -s --format=%ct $(SHA))
-endif
+SHA := $(shell git rev-parse HEAD)
+BUILD_TIME := $(shell git show -s --format=%ct $(SHA))
 
 GOMOD := $(shell go list -m)
 GOBUILD_FLAGS := -ldflags "-X $(GOMOD)/internal/build.vcsInfo=$(SHA),$(BUILD_TIME)"
