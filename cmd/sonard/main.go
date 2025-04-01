@@ -11,10 +11,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/kellegous/glue/logging"
 	"go.uber.org/zap"
 
 	"github.com/kellegous/sonar/internal/config"
-	"github.com/kellegous/sonar/internal/logging"
 	"github.com/kellegous/sonar/internal/ping"
 	"github.com/kellegous/sonar/internal/store"
 	"github.com/kellegous/sonar/internal/ui"

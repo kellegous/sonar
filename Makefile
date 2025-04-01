@@ -1,8 +1,6 @@
-SHA := $(shell git rev-parse HEAD)
-BUILD_TIME := $(shell git show -s --format=%ct $(SHA))
-
-GOMOD := $(shell go list -m)
-GOBUILD_FLAGS := -ldflags "-X $(GOMOD)/internal/build.vcsInfo=$(SHA),$(BUILD_TIME)"
+SHA := $(shell go run github.com/kellegous/glue/build/info --format="{{.SHA}}")
+BUILD_TIME := $(shell go run github.com/kellegous/glue/build/info --format="{{.CommitTime|timestamp}}")
+BUILD_NAME := $(shell go run github.com/kellegous/glue/build/info --format="{{.Name}}")
 
 ASSETS := \
 	internal/ui/assets/index.html
@@ -12,16 +10,13 @@ ASSETS := \
 ALL: bin/sonard
 
 bin/sonard: cmd/sonard/main.go $(ASSETS) $(shell find internal -type f)
-	go build -o $@ $(GOBUILD_FLAGS) ./cmd/sonard
+	go build -o $@ ./cmd/sonard
 
 bin/devserver: cmd/devserver/main.go $(shell find internal -type f)
-	go build -o $@ $(GOBUILD_FLAGS) ./cmd/devserver
+	go build -o $@ ./cmd/devserver
 
-bin/buildname:
-	GOBIN="$(CURDIR)/bin" go install github.com/kellegous/buildname/cmd/buildname@latest
-
-internal/ui/assets/index.html: node_modules/.build bin/buildname $(shell find ui -type f)
-	SHA="$(SHA)" BUILD_NAME="$(shell bin/buildname $(SHA))" npm run build
+internal/ui/assets/index.html: node_modules/.build $(shell find ui -type f)
+	SHA="$(SHA)" BUILD_NAME="$(BUILD_NAME)" npm run build
 
 node_modules/.build:
 	npm install

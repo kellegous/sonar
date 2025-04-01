@@ -9,7 +9,7 @@ import (
 	"os/exec"
 	"os/signal"
 
-	"github.com/kellegous/sonar/internal/build"
+	"github.com/kellegous/glue/build"
 )
 
 const defaultVitePort = 3001
@@ -19,10 +19,7 @@ func startVite(
 	root string,
 	port int,
 ) error {
-	bs, err := build.ReadSummary()
-	if err != nil {
-		return err
-	}
+	bs := build.ReadSummary()
 
 	c := exec.CommandContext(
 		ctx,
