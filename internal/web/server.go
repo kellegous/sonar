@@ -10,6 +10,7 @@ import (
 	"github.com/twitchtv/twirp"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/kellegous/sonar"
 	"github.com/kellegous/sonar/internal/config"
@@ -100,5 +101,9 @@ func (s *Server) GetStoreStats(ctx context.Context, req *emptypb.Empty) (*sonar.
 		return nil, twirp.InternalErrorWith(err)
 	}
 
-	return nil, twirp.NewError(twirp.Unimplemented, "not implemented")
+	return &sonar.GetStoreStatsResponse{
+		Count:    count,
+		Earliest: timestamppb.New(earliest),
+		Latest:   timestamppb.New(latest),
+	}, nil
 }
