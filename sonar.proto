@@ -26,6 +26,7 @@ message Stats {
 service Sonar {
 	rpc GetCurrent(google.protobuf.Empty) returns (GetCurrentResponse);
 	rpc GetHourly(google.protobuf.Empty) returns (GetHourlyResponse);
+	rpc GetStoreStats(google.protobuf.Empty) returns (GetStoreStatsResponse);
 }
 
 message GetCurrentResponse {
@@ -42,4 +43,10 @@ message GetHourlyResponse {
 		Host host = 1;
 		repeated Stats hours = 2;
 	}
+}
+
+message GetStoreStatsResponse {
+	google.protobuf.Timestamp earliest = 1;
+	google.protobuf.Timestamp latest = 2;
+	int64 count = 3;
 }
