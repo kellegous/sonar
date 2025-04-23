@@ -108,7 +108,45 @@ func (s *server) GetHourly(
 	ctx context.Context,
 	req *sonar.GetHourlyRequest,
 ) (*sonar.GetHourlyResponse, error) {
-	return nil, twirp.NewError(twirp.Unimplemented, "not implemented")
+	cfg := s.cfg
+
+	nHrs := int(req.GetHours())
+	st := time.Now().Add(-time.Duration(nHrs-1) * time.Hour).Truncate(time.Hour)
+
+	hours := make([]*sonar.GetHourlyResponse_HostStats, 0, len(cfg.Hosts))
+	for _, host := range cfg.Hosts {
+		data := make([][]time.Duration, nHrs)
+		if err := s.store.ForEach(
+			store.NewMarker(host.IP, st),
+			store.NewMarker(host.IP, store.Last),
+			func(ip net.IP, t time.Time, vals []time.Duration) error {
+				ix := int(t.Sub(st).Nanoseconds() / int64(time.Hour))
+				if ix < 0 || ix > nHrs {
+					return nil
+				}
+				data[ix] = append(data[ix], vals...)
+				return nil
+			},
+		); err != nil {
+			return nil, twirp.InternalErrorWith(err)
+		}
+
+		curr := &sonar.GetHourlyResponse_HostStats{
+			Host: &sonar.Host{
+				Ip:   host.IP.String(),
+				Name: host.Name,
+			},
+			Hours: make([]*sonar.Stats, nHrs),
+		}
+
+		for ix, vals := range data {
+			curr.Hours[ix] = buildStats(st.Add(time.Duration(ix)*time.Hour), vals)
+		}
+
+		hours = append(hours, curr)
+	}
+
+	return &sonar.GetHourlyResponse{Hosts: hours}, nil
 }
 
 func (s *server) GetStoreStats(
