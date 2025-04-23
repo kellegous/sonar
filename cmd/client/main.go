@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/kellegous/sonar"
@@ -30,5 +31,15 @@ func main() {
 		log.Panic(err)
 	}
 
-	fmt.Printf("%#v\n", res)
+	m := protojson.MarshalOptions{
+		UseProtoNames:     true,
+		EmitDefaultValues: true,
+		Indent:            "  ",
+	}
+
+	b, err := m.Marshal(res)
+	if err != nil {
+		log.Panic(err)
+	}
+	fmt.Printf("%s\n", b)
 }
