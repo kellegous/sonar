@@ -5,3 +5,4 @@
 /sonar-local.toml
 /sonar.pb.go
 /sonar.twirp.go
+/cmd/client/
