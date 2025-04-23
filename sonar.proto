@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package sonar;
+option go_package = "github.com/kellegous/sonar";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+message Host {
+	string ip = 1;
+	string name = 2;
+}
+
+message Stats {
+	google.protobuf.Timestamp time = 1;
+	double loss = 2;
+	double avg = 3;
+	int32 min = 4;
+	int32 max = 5;
+	int32 p90 = 6;
+	int32 p50 = 7;
+	int32 p10 = 8;
+	int32 count = 9;
+}
+
+service Sonar {
+	rpc GetCurrent(google.protobuf.Empty) returns (GetCurrentResponse);
+	rpc GetHourly(google.protobuf.Empty) returns (GetHourlyResponse);
+}
+
+message GetCurrentResponse {
+	repeated HostStats hosts = 1;
+	message HostStats {
+		Host host = 1;
+		Stats stats = 3;
+	}
+}
+
+message GetHourlyResponse {
+	repeated HostStats hosts = 1;
+	message HostStats {
+		Host host = 1;
+		repeated Stats hours = 2;
+	}
+}
