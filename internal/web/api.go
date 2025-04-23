@@ -145,13 +145,13 @@ func summarize(s *Summary, vals []time.Duration, withData bool) {
 func apiCurrent(
 	w http.ResponseWriter,
 	r *http.Request,
-	s *Server,
+	s *server,
 ) {
 	withRaw := boolParam(r.FormValue("with-raw"))
-	cfg := s.Config
+	cfg := s.cfg
 	res := make([]*current, 0, len(cfg.Hosts))
 	for _, host := range cfg.Hosts {
-		t, vals, err := s.Store.Current(host.IP)
+		t, vals, err := s.store.Current(host.IP)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -190,9 +190,9 @@ func intParam(v string, def int) int {
 func apiByHour(
 	w http.ResponseWriter,
 	r *http.Request,
-	s *Server,
+	s *server,
 ) {
-	cfg := s.Config
+	cfg := s.cfg
 	hrs := intParam(r.FormValue("n"), 24)
 	withRaw := boolParam(r.FormValue("with-raw"))
 
@@ -202,7 +202,7 @@ func apiByHour(
 
 	for _, host := range cfg.Hosts {
 		data := make([][]time.Duration, hrs)
-		if err := s.Store.ForEach(
+		if err := s.store.ForEach(
 			store.NewMarker(host.IP, st),
 			store.NewMarker(host.IP, store.Last),
 			func(ip net.IP, t time.Time, vals []time.Duration) error {

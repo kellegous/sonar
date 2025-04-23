@@ -15,17 +15,17 @@ message Stats {
 	google.protobuf.Timestamp time = 1;
 	double loss = 2;
 	double avg = 3;
-	int32 min = 4;
-	int32 max = 5;
-	int32 p90 = 6;
-	int32 p50 = 7;
-	int32 p10 = 8;
-	int32 count = 9;
+	uint32 min = 4;
+	uint32 max = 5;
+	uint32 p90 = 6;
+	uint32 p50 = 7;
+	uint32 p10 = 8;
+	uint32 count = 9;
 }
 
 service Sonar {
 	rpc GetCurrent(google.protobuf.Empty) returns (GetCurrentResponse);
-	rpc GetHourly(google.protobuf.Empty) returns (GetHourlyResponse);
+	rpc GetHourly(GetHourlyRequest) returns (GetHourlyResponse);
 	rpc GetStoreStats(google.protobuf.Empty) returns (GetStoreStatsResponse);
 }
 
@@ -35,6 +35,10 @@ message GetCurrentResponse {
 		Host host = 1;
 		Stats stats = 3;
 	}
+}
+
+message GetHourlyRequest {
+	uint32 hours = 1;
 }
 
 message GetHourlyResponse {

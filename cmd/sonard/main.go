@@ -127,12 +127,7 @@ func main() {
 
 	go monitor(&cfg, s)
 
-	svr := &web.Server{
-		Config: &cfg,
-		Store:  s,
-	}
-
-	if err := svr.ListenAndServe(ctx, assets); err != nil {
+	if err := web.ListenAndServe(ctx, &cfg, s, assets); err != nil {
 		lg.Fatal("unable to serve web traffic",
 			zap.Error(err))
 	}

@@ -17,10 +17,7 @@ BE_PROTOS := \
 
 .PHONY: ALL test clean nuke
 
-ALL: bin/sonard bin/client
-
-bin/client: cmd/client/main.go $(BE_PROTOS) $(shell find internal -type f)
-	go build -o $@ ./cmd/client
+ALL: bin/sonard
 
 bin/sonard: cmd/sonard/main.go $(BE_PROTOS) $(ASSETS) $(shell find internal -type f)
 	go build -o $@ ./cmd/sonard

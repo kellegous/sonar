@@ -3,7 +3,7 @@ package web
 import (
 	"context"
 	"net"
-	"net/http"
+	"sort"
 	"sync"
 	"time"
 
@@ -17,58 +17,115 @@ import (
 	"github.com/kellegous/sonar/internal/store"
 )
 
-type Server struct {
-	Config *config.Config
-	Store  *store.Store
+type server struct {
+	cfg   *config.Config
+	store *store.Store
 }
 
-var _ sonar.Sonar = (*Server)(nil)
+var _ sonar.Sonar = (*server)(nil)
 
-func (s *Server) ListenAndServe(
+func buildStats(t time.Time, vals []time.Duration) *sonar.Stats {
+	stats := &sonar.Stats{
+		Time: timestamppb.New(t),
+	}
+
+	n := len(vals)
+	if n == 0 {
+		return stats
+	}
+
+	// filter out any lost packets
+	valid := make([]int, 0, n)
+	for _, d := range vals {
+		v := int(d.Nanoseconds())
+		if v == 0 {
+			continue
+		}
+		valid = append(valid, v)
+	}
+
+	// TODO(knorton): should this be len(valid)?
+	stats.Count = uint32(n)
+	stats.Loss = 1.0 - float64(len(valid))/float64(n)
+
+	// if all packets were lost, we can't do anything else.
+	if len(valid) == 0 {
+		return stats
+	}
+
+	sort.Ints(valid)
+	max := 0
+	min := 0x7fffffffffffffff
+
+	mu := 0.0
+	for _, d := range valid {
+		mu += float64(d)
+		if d > max {
+			max = d
+		}
+		if d < min {
+			min = d
+		}
+	}
+	mu /= float64(len(valid))
+
+	stats.Avg = mu
+	stats.Max = uint32(max)
+	stats.Min = uint32(min)
+	stats.P10 = uint32(perc(0.1, valid))
+	stats.P90 = uint32(perc(0.9, valid))
+	stats.P50 = uint32(perc(0.5, valid))
+	return stats
+}
+
+func (s *server) GetCurrent(
 	ctx context.Context,
-	assets http.Handler,
-) error {
-	m := http.NewServeMux()
+	req *emptypb.Empty,
+) (*sonar.GetCurrentResponse, error) {
+	cfg := s.cfg
+	hosts := make([]*sonar.GetCurrentResponse_HostStats, 0, len(cfg.Hosts))
+	for _, host := range cfg.Hosts {
+		t, vals, err := s.store.Current(host.IP)
+		if err != nil {
+			return nil, twirp.InternalErrorWith(err)
+		}
 
-	m.Handle(sonar.SonarPathPrefix, sonar.NewSonarServer(s))
+		c := &sonar.GetCurrentResponse_HostStats{
+			Host: &sonar.Host{
+				Ip:   host.IP.String(),
+				Name: host.Name,
+			},
+			Stats: buildStats(t, vals),
+		}
 
-	m.HandleFunc(
-		"/api/v1/current",
-		func(w http.ResponseWriter, r *http.Request) {
-			apiCurrent(w, r, s)
-		})
+		hosts = append(hosts, c)
+	}
 
-	m.HandleFunc(
-		"/api/v1/hourly",
-		func(w http.ResponseWriter, r *http.Request) {
-			apiByHour(w, r, s)
-		})
-
-	m.Handle("/", assets)
-
-	return http.ListenAndServe(s.Config.Addr, m)
+	return &sonar.GetCurrentResponse{Hosts: hosts}, nil
 }
 
-func (s *Server) GetCurrent(ctx context.Context, req *emptypb.Empty) (*sonar.GetCurrentResponse, error) {
+func (s *server) GetHourly(
+	ctx context.Context,
+	req *sonar.GetHourlyRequest,
+) (*sonar.GetHourlyResponse, error) {
 	return nil, twirp.NewError(twirp.Unimplemented, "not implemented")
 }
 
-func (s *Server) GetHourly(ctx context.Context, req *emptypb.Empty) (*sonar.GetHourlyResponse, error) {
-	return nil, twirp.NewError(twirp.Unimplemented, "not implemented")
-}
-
-func (s *Server) GetStoreStats(ctx context.Context, req *emptypb.Empty) (*sonar.GetStoreStatsResponse, error) {
+func (s *server) GetStoreStats(
+	ctx context.Context,
+	req *emptypb.Empty,
+) (*sonar.GetStoreStatsResponse, error) {
 	var lock sync.Mutex
 	earliest := store.Last
 	latest := store.First
 	var count int64
 	g, _ := errgroup.WithContext(ctx)
-	for _, host := range s.Config.Hosts {
+	for _, host := range s.cfg.Hosts {
 		host := host
 		g.Go(func() error {
 			var a, b time.Time
 			var c int64
-			if err := s.Store.ForEach(
+			if err := s.store.ForEach(
 				store.NewMarker(host.IP, store.First),
 				store.NewMarker(host.IP, store.Last),
 				func(ip net.IP, t time.Time, vals []time.Duration) error {
