@@ -78,6 +78,49 @@ func buildStats(t time.Time, vals []time.Duration) *sonar.Stats {
 	return stats
 }
 
+func (s *server) GetAll(
+	ctx context.Context,
+	req *sonar.GetAllRequest,
+) (*sonar.GetAllResponse, error) {
+	g, ctx := errgroup.WithContext(ctx)
+
+	var current *sonar.GetCurrentResponse
+	g.Go(func() error {
+		var err error
+		current, err = s.GetCurrent(
+			ctx,
+			&emptypb.Empty{})
+		return err
+	})
+
+	var hourly *sonar.GetHourlyResponse
+	g.Go(func() error {
+		var err error
+		hourly, err = s.GetHourly(
+			ctx,
+			&sonar.GetHourlyRequest{Hours: req.GetHours()})
+		return err
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	// TODO(kellegous): This is kind of dumb and I should clean it up.
+	hosts := make([]*sonar.GetAllResponse_HostStats, 0, len(s.cfg.Hosts))
+	for i, host := range current.Hosts {
+		hosts = append(hosts, &sonar.GetAllResponse_HostStats{
+			Host:    host.Host,
+			Hours:   hourly.Hosts[i].Hours,
+			Current: host.Stats,
+		})
+	}
+
+	return &sonar.GetAllResponse{
+		Hosts: hosts,
+	}, nil
+}
+
 func (s *server) GetCurrent(
 	ctx context.Context,
 	req *emptypb.Empty,

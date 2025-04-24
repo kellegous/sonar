@@ -15,6 +15,10 @@ BE_PROTOS := \
 	sonar.pb.go \
 	sonar.twirp.go
 
+FE_PROTOS := \
+	ui/src/gen/sonar.ts \
+	ui/src/gen/sonar.twirp.ts
+
 .PHONY: ALL test clean nuke
 
 ALL: bin/sonard
@@ -48,7 +52,25 @@ bin/protoc:
 		--twirp_opt=module=$(GO_MOD) \
 		$<
 
-internal/ui/assets/index.html: node_modules/.build $(shell find ui -type f)
+ui/src/gen/%.ts: %.proto node_modules/.build
+	mkdir -p $(dir $@)
+	protoc --proto_path=. \
+		--plugin=protoc-gen-ts=node_modules/.bin/protoc-gen-ts \
+		--ts_out=ui/src/gen \
+		--ts_opt=ts_nocheck,force_server_none \
+		$<
+
+ui/src/gen/%.twirp.ts: %.proto node_modules/.build
+	mkdir -p $(dir $@)
+	protoc --proto_path=. \
+		--plugin=protoc-gen-ts=node_modules/.bin/protoc-gen-ts \
+		--plugin=protoc-gen-twirp_ts=node_modules/.bin/protoc-gen-twirp_ts \
+		--twirp_ts_out=ui/src/gen \
+		--ts_out=ui/src/gen \
+		--ts_opt=ts_nocheck,force_server_none \
+		$<
+	
+internal/ui/assets/index.html: node_modules/.build $(FE_PROTOS) $(shell find ui -type f)
 	SHA="$(SHA)" BUILD_NAME="$(BUILD_NAME)" npm run build
 
 node_modules/.build:
