@@ -1,6 +1,6 @@
 module github.com/kellegous/sonar
 
-go 1.24.3
+go 1.24.4
 
 require (
 	github.com/BurntSushi/toml v1.5.0
@@ -8,8 +8,8 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	go.uber.org/zap v1.27.0
-	golang.org/x/net v0.40.0
-	golang.org/x/sync v0.14.0
+	golang.org/x/net v0.41.0
+	golang.org/x/sync v0.15.0
 	google.golang.org/protobuf v1.36.6
 )
 
