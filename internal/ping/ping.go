@@ -35,6 +35,8 @@ func decodeTimeFrom(msg *icmp.Message) (int, int, time.Time, error) {
 	b, err := msg.Body.Marshal(protocolICMP)
 	if err != nil {
 		return 0, 0, time.Time{}, err
+	} else if len(b) != 12 {
+		return 0, 0, time.Time{}, fmt.Errorf("unexpected length: %d", len(b))
 	}
 
 	id := int(binary.BigEndian.Uint16(b[:2]))
@@ -72,7 +74,7 @@ func recv(p *Pinger, seq int, dl time.Time) (time.Duration, error) {
 			return recv(p, seq, dl)
 		}
 
-		return time.Now().Sub(t), nil
+		return time.Since(t), nil
 	case ipv4.ICMPTypeDestinationUnreachable, ipv4.ICMPTypeTimeExceeded:
 		return time.Duration(0), ErrNoAnswer
 	default:
