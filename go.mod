@@ -1,10 +1,10 @@
 module github.com/kellegous/sonar
 
-go 1.25.2
+go 1.25.3
 
 require (
 	github.com/BurntSushi/toml v1.5.0
-	github.com/kellegous/glue v0.10.0
+	github.com/kellegous/glue v0.11.0
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/twitchtv/twirp v8.1.3+incompatible
 	go.uber.org/zap v1.27.0
