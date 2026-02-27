@@ -4,6 +4,10 @@ set -e pipefail
 
 MODULE=$(go list -m)
 
+# Ensure the protobufs are present before
+# running go mod tidy.
+make
+
 rm -f go.mod go.sum
 go mod init $MODULE
 go mod tidy
