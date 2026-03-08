@@ -7,3 +7,4 @@
 /sonar.twirp.go
 /ui/src/gen/
 /cmd/client/
+/sonar_connect/sonar.connect.go

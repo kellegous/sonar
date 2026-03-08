@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/twitchtv/twirp"
+	"connectrpc.com/connect"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -15,6 +15,7 @@ import (
 	"github.com/kellegous/sonar"
 	"github.com/kellegous/sonar/internal/config"
 	"github.com/kellegous/sonar/internal/store"
+	"github.com/kellegous/sonar/sonar_connect"
 )
 
 type server struct {
@@ -22,7 +23,7 @@ type server struct {
 	store *store.Store
 }
 
-var _ sonar.Sonar = (*server)(nil)
+var _ sonar_connect.SonarHandler = (*server)(nil)
 
 func buildStats(t time.Time, vals []time.Duration) *sonar.Stats {
 	stats := &sonar.Stats{
@@ -80,25 +81,34 @@ func buildStats(t time.Time, vals []time.Duration) *sonar.Stats {
 
 func (s *server) GetAll(
 	ctx context.Context,
-	req *sonar.GetAllRequest,
-) (*sonar.GetAllResponse, error) {
+	req *connect.Request[sonar.GetAllRequest],
+) (*connect.Response[sonar.GetAllResponse], error) {
+	msg := req.Msg
 	g, ctx := errgroup.WithContext(ctx)
 
 	var current *sonar.GetCurrentResponse
 	g.Go(func() error {
 		var err error
-		current, err = s.GetCurrent(
+		res, err := s.GetCurrent(
 			ctx,
-			&emptypb.Empty{})
-		return err
+			connect.NewRequest(&emptypb.Empty{}))
+		if err != nil {
+			return err
+		}
+		current = res.Msg
+		return nil
 	})
 
 	var hourly *sonar.GetHourlyResponse
 	g.Go(func() error {
 		var err error
-		hourly, err = s.GetHourly(
+		res, err := s.GetHourly(
 			ctx,
-			&sonar.GetHourlyRequest{Hours: req.GetHours()})
+			connect.NewRequest(&sonar.GetHourlyRequest{Hours: msg.GetHours()}))
+		if err != nil {
+			return err
+		}
+		hourly = res.Msg
 		return err
 	})
 
@@ -116,21 +126,21 @@ func (s *server) GetAll(
 		})
 	}
 
-	return &sonar.GetAllResponse{
+	return connect.NewResponse(&sonar.GetAllResponse{
 		Hosts: hosts,
-	}, nil
+	}), nil
 }
 
 func (s *server) GetCurrent(
 	ctx context.Context,
-	req *emptypb.Empty,
-) (*sonar.GetCurrentResponse, error) {
+	req *connect.Request[emptypb.Empty],
+) (*connect.Response[sonar.GetCurrentResponse], error) {
 	cfg := s.cfg
 	hosts := make([]*sonar.GetCurrentResponse_HostStats, 0, len(cfg.Hosts))
 	for _, host := range cfg.Hosts {
 		t, vals, err := s.store.Current(host.IP)
 		if err != nil {
-			return nil, twirp.InternalErrorWith(err)
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 
 		c := &sonar.GetCurrentResponse_HostStats{
@@ -144,16 +154,17 @@ func (s *server) GetCurrent(
 		hosts = append(hosts, c)
 	}
 
-	return &sonar.GetCurrentResponse{Hosts: hosts}, nil
+	return connect.NewResponse(&sonar.GetCurrentResponse{Hosts: hosts}), nil
 }
 
 func (s *server) GetHourly(
 	ctx context.Context,
-	req *sonar.GetHourlyRequest,
-) (*sonar.GetHourlyResponse, error) {
+	req *connect.Request[sonar.GetHourlyRequest],
+) (*connect.Response[sonar.GetHourlyResponse], error) {
+	msg := req.Msg
 	cfg := s.cfg
 
-	nHrs := int(req.GetHours())
+	nHrs := int(msg.GetHours())
 	st := time.Now().Add(-time.Duration(nHrs-1) * time.Hour).Truncate(time.Hour)
 
 	hours := make([]*sonar.GetHourlyResponse_HostStats, 0, len(cfg.Hosts))
@@ -171,7 +182,7 @@ func (s *server) GetHourly(
 				return nil
 			},
 		); err != nil {
-			return nil, twirp.InternalErrorWith(err)
+			return nil, connect.NewError(connect.CodeInternal, err)
 		}
 
 		curr := &sonar.GetHourlyResponse_HostStats{
@@ -189,13 +200,13 @@ func (s *server) GetHourly(
 		hours = append(hours, curr)
 	}
 
-	return &sonar.GetHourlyResponse{Hosts: hours}, nil
+	return connect.NewResponse(&sonar.GetHourlyResponse{Hosts: hours}), nil
 }
 
 func (s *server) GetStoreStats(
 	ctx context.Context,
-	req *emptypb.Empty,
-) (*sonar.GetStoreStatsResponse, error) {
+	req *connect.Request[emptypb.Empty],
+) (*connect.Response[sonar.GetStoreStatsResponse], error) {
 	var lock sync.Mutex
 	earliest := store.Last
 	latest := store.First
@@ -236,12 +247,12 @@ func (s *server) GetStoreStats(
 	}
 
 	if err := g.Wait(); err != nil {
-		return nil, twirp.InternalErrorWith(err)
+		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
-	return &sonar.GetStoreStatsResponse{
+	return connect.NewResponse(&sonar.GetStoreStatsResponse{
 		Count:    count,
 		Earliest: timestamppb.New(earliest),
 		Latest:   timestamppb.New(latest),
-	}, nil
+	}), nil
 }

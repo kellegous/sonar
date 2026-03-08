@@ -1,11 +1,11 @@
 import "./index.scss";
 
-import { Signal } from "./lib/signal";
+import { timestampDate } from "@bufbuild/protobuf/wkt";
+import { createClient } from "@connectrpc/connect";
+import { createConnectTransport } from "@connectrpc/connect-web";
+import { GetAllResponse_HostStats, Sonar, Stats } from "./gen/sonar_pb";
 import { El } from "./lib/dom";
-import { SonarClientJSON } from "./gen/sonar.twirp";
-import { FetchRPC } from "twirp-ts";
-import { GetAllResponse_HostStats, Stats } from "./gen/sonar";
-import { Timestamp } from "./gen/google/protobuf/timestamp";
+import { Signal } from "./lib/signal";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 
@@ -65,10 +65,13 @@ function formatHour(dt: Date): string {
 function start(period: number): Signal {
   var s = new Signal();
 
-  const client = new SonarClientJSON(FetchRPC({ baseUrl: "/twirp" }));
+  const client = createClient(
+    Sonar,
+    createConnectTransport({ baseUrl: "/rpc" }),
+  );
 
   const load = async () => {
-    const { hosts } = await client.GetAll({ hours: 48 });
+    const { hosts } = await client.getAll({ hours: 48 });
     s.raise(hosts);
   };
 
@@ -119,7 +122,7 @@ function rangeFrom(hours: Stats[]): Range {
 
       return r;
     },
-    { min: 0, max: 0 }
+    { min: 0, max: 0 },
   );
 }
 
@@ -288,7 +291,7 @@ function renderTimeGraph(el: HTMLElement, report: GetAllResponse_HostStats) {
   });
 
   report.hours.forEach((hr: Stats, i: number) => {
-    var t = Timestamp.toDate(hr.time!);
+    var t = timestampDate(hr.time!);
     El.create("text", SVGNS)
       .setAttrs({
         x: pad + dx * i + 3,

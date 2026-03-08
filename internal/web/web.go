@@ -4,10 +4,12 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kellegous/sonar"
 	"github.com/kellegous/sonar/internal/config"
 	"github.com/kellegous/sonar/internal/store"
+	"github.com/kellegous/sonar/sonar_connect"
 )
+
+const rpcPrefix = "/rpc"
 
 func ListenAndServe(
 	ctx context.Context,
@@ -22,7 +24,8 @@ func ListenAndServe(
 		store: s,
 	}
 
-	m.Handle(sonar.SonarPathPrefix, sonar.NewSonarServer(svr))
+	path, handler := sonar_connect.NewSonarHandler(svr)
+	m.Handle(rpcPrefix+path, http.StripPrefix(rpcPrefix, handler))
 
 	m.HandleFunc(
 		"/api/v1/current",

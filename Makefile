@@ -1,6 +1,6 @@
 PROTOC_GEN_GO_VERSION := v1.36.5
-PROTOC_GEN_TWIRP_VERSION := v8.1.3
-PROTOC_VERSION := 29.1
+PROTOC_GEN_CONNECT_GO_VERSION := v1.19.1
+PROTOC_VERSION := 33.0
 
 SHA := $(shell go run github.com/kellegous/glue/build/info --format="{{.SHA}}")
 BUILD_TIME := $(shell go run github.com/kellegous/glue/build/info --format="{{.CommitTime|timestamp}}")
@@ -13,27 +13,26 @@ ASSETS := \
 
 BE_PROTOS := \
 	sonar.pb.go \
-	sonar.twirp.go
+	sonar_connect/sonar.connect.go
 
 FE_PROTOS := \
-	ui/src/gen/sonar.ts \
-	ui/src/gen/sonar.twirp.ts
+	ui/src/gen/sonar_pb.ts
 
 .PHONY: ALL test clean nuke
 
 ALL: bin/sonard
 
-bin/sonard: cmd/sonard/main.go $(BE_PROTOS) $(ASSETS) $(shell find internal -type f)
+bin/sonard: cmd/sonard/main.go $(BE_PROTOS) $(ASSETS) $(shell find internal -type f -name '*.go')
 	go build -o $@ ./cmd/sonard
 
-bin/devserver: cmd/devserver/main.go $(shell find internal -type f)
+bin/devserver: cmd/devserver/main.go $(shell find internal -type f -name '*.go')
 	go build -o $@ ./cmd/devserver
 
 bin/protoc-gen-go:
 	GOBIN="$(CURDIR)/bin" go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
 
-bin/protoc-gen-twirp:
-	GOBIN="$(CURDIR)/bin" go install github.com/twitchtv/twirp/protoc-gen-twirp@$(PROTOC_GEN_TWIRP_VERSION)
+bin/protoc-gen-connect-go:
+	GOBIN="$(CURDIR)/bin" go install connectrpc.com/connect/cmd/protoc-gen-connect-go@$(PROTOC_GEN_CONNECT_GO_VERSION)
 
 bin/protoc:
 	etc/download-protoc $(PROTOC_VERSION)
@@ -45,31 +44,22 @@ bin/protoc:
 		--go_opt=module=$(GO_MOD) \
 		$<
 
-%.twirp.go: %.proto bin/protoc-gen-twirp bin/protoc
+sonar_connect/sonar.connect.go: sonar.proto bin/protoc-gen-connect-go bin/protoc
 	bin/protoc --proto_path=. \
-		--plugin=protoc-gen-twirp=bin/protoc-gen-twirp \
-		--twirp_out=. \
-		--twirp_opt=module=$(GO_MOD) \
+		--plugin=protoc-gen-connect-go=bin/protoc-gen-connect-go \
+		--connect-go_out=. \
+		--connect-go_opt=module=$(GO_MOD) \
+		--connect-go_opt=package_suffix=_connect \
 		$<
 
-ui/src/gen/%.ts: %.proto node_modules/.build
+ui/src/gen/%_pb.ts: %.proto node_modules/.build bin/protoc
 	mkdir -p $(dir $@)
-	protoc --proto_path=. \
-		--plugin=protoc-gen-ts=node_modules/.bin/protoc-gen-ts \
-		--ts_out=ui/src/gen \
-		--ts_opt=ts_nocheck,force_server_none \
+	bin/protoc --proto_path=. \
+		--plugin=protoc-gen-es=node_modules/.bin/protoc-gen-es \
+		--es_out=ui/src/gen \
+		--es_opt=target=ts \
 		$<
 
-ui/src/gen/%.twirp.ts: %.proto node_modules/.build
-	mkdir -p $(dir $@)
-	protoc --proto_path=. \
-		--plugin=protoc-gen-ts=node_modules/.bin/protoc-gen-ts \
-		--plugin=protoc-gen-twirp_ts=node_modules/.bin/protoc-gen-twirp_ts \
-		--twirp_ts_out=ui/src/gen \
-		--ts_out=ui/src/gen \
-		--ts_opt=ts_nocheck,force_server_none \
-		$<
-	
 internal/ui/assets/index.html: node_modules/.build $(FE_PROTOS) $(shell find ui -type f)
 	SHA="$(SHA)" BUILD_NAME="$(BUILD_NAME)" npm run build
 
