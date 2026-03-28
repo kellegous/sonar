@@ -2,9 +2,8 @@ PROTOC_GEN_GO_VERSION := v1.36.5
 PROTOC_GEN_CONNECT_GO_VERSION := v1.19.1
 PROTOC_VERSION := 33.0
 
-SHA := $(shell go run github.com/kellegous/glue/build/info --format="{{.SHA}}")
-BUILD_TIME := $(shell go run github.com/kellegous/glue/build/info --format="{{.CommitTime|timestamp}}")
-BUILD_NAME := $(shell go run github.com/kellegous/glue/build/info --format="{{.Name}}")
+SHA = $(shell go run github.com/kellegous/glue/build/info --format="{{.SHA}}")
+BUILD_NAME = $(shell go run github.com/kellegous/glue/build/info --format="{{.Name}}")
 
 GO_MOD := $(shell go list -m)
 
@@ -67,8 +66,8 @@ node_modules/.build:
 	npm install
 	touch $@
 
-develop: bin/sonard bin/devserver
-	bin/devserver
+develop: bin/sonard
+	sudo bin/sonard --dev-mode=.:4066
 
 test:
 	go test ./internal/...

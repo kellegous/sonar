@@ -1,4 +1,3 @@
-addr = ":7699"
 data-path = "data"
 samples-per-period = 10
 sample-period = "1m"

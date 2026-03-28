@@ -11,7 +11,7 @@ import (
 
 const (
 	DefaultSamplePeriod     = 30 * time.Second
-	DefaultAddr             = ":8080"
+	DefaultAddr             = ":4065"
 	DefaultSamplesPerPeriod = 10
 	DefaultDataPath         = "data"
 )

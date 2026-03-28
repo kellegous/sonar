@@ -7,10 +7,11 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
+	"os"
 	"time"
 
+	"github.com/kellegous/glue/build"
+	"github.com/kellegous/glue/devmode"
 	"github.com/kellegous/glue/logging"
 	"go.uber.org/zap"
 
@@ -58,35 +59,21 @@ func monitor(cfg *config.Config, s *store.Store) {
 	}
 }
 
-func proxyTo(u *url.URL) http.Handler {
-	p := httputil.NewSingleHostReverseProxy(u)
-	dir := p.Director
-	p.Director = func(r *http.Request) {
-		dir(r)
-		r.Host = u.Host
-	}
-	return p
-}
-
-func getAssets(proxyURL string) (http.Handler, error) {
-	if proxyURL == "" {
+func getAssets(ctx context.Context, devMode *devmode.Flag) (http.Handler, error) {
+	if !devMode.IsEnabled() {
 		return ui.Assets()
 	}
 
-	u, err := url.Parse(proxyURL)
-	if err != nil {
-		return nil, err
-	}
-
-	return proxyTo(u), nil
+	return devmode.AssetsFromVite(
+		ctx,
+		devMode,
+		devmode.WithBuildSummary(build.ReadSummary()))
 }
 
 func main() {
 	var flags struct {
 		ConfigFile string
-		Web        struct {
-			AssetProxyURL string
-		}
+		DevMode    devmode.Flag
 	}
 
 	flag.StringVar(
@@ -94,12 +81,10 @@ func main() {
 		"conf",
 		"sonar.toml",
 		"the config file for the service")
-
-	flag.StringVar(
-		&flags.Web.AssetProxyURL,
-		"web.asset-proxy-url",
-		"",
-		"the URL to use for the asset proxy")
+	flag.Var(
+		&flags.DevMode,
+		"dev-mode",
+		"Enable dev mode")
 	flag.Parse()
 
 	lg := logging.MustSetup()
@@ -119,13 +104,20 @@ func main() {
 			zap.Error(err))
 	}
 
-	assets, err := getAssets(flags.Web.AssetProxyURL)
+	assets, err := getAssets(ctx, &flags.DevMode)
 	if err != nil {
 		lg.Fatal("unable to load assets",
 			zap.Error(err))
 	}
 
 	go monitor(&cfg, s)
+
+	go func() {
+		if err := flags.DevMode.ShowBannerWhenReady(ctx, os.Stdout, cfg.Addr); err != nil {
+			lg.Fatal("unable to show banner",
+				zap.Error(err))
+		}
+	}()
 
 	if err := web.ListenAndServe(ctx, &cfg, s, assets); err != nil {
 		lg.Fatal("unable to serve web traffic",
