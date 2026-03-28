@@ -24,9 +24,6 @@ ALL: bin/sonard
 bin/sonard: cmd/sonard/main.go $(BE_PROTOS) $(ASSETS) $(shell find internal -type f -name '*.go')
 	go build -o $@ ./cmd/sonard
 
-bin/devserver: cmd/devserver/main.go $(shell find internal -type f -name '*.go')
-	go build -o $@ ./cmd/devserver
-
 bin/protoc-gen-go:
 	GOBIN="$(CURDIR)/bin" go install google.golang.org/protobuf/cmd/protoc-gen-go@$(PROTOC_GEN_GO_VERSION)
 
