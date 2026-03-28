@@ -113,7 +113,13 @@ func main() {
 	go monitor(&cfg, s)
 
 	go func() {
-		if err := flags.DevMode.ShowBannerWhenReady(ctx, os.Stdout, cfg.Addr); err != nil {
+		ctx, done := context.WithTimeout(ctx, 30*time.Second)
+		defer done()
+		if err := flags.DevMode.ShowBannerWhenReady(
+			ctx,
+			os.Stdout,
+			cfg.Addr,
+		); err != nil {
 			lg.Fatal("unable to show banner",
 				zap.Error(err))
 		}
