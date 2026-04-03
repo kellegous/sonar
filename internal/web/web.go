@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"connectrpc.com/connect"
+	"github.com/kellegous/glue/metrics"
 	"github.com/kellegous/sonar/internal/config"
 	"github.com/kellegous/sonar/internal/store"
 	"github.com/kellegous/sonar/sonar_connect"
@@ -24,7 +26,10 @@ func ListenAndServe(
 		store: s,
 	}
 
-	path, handler := sonar_connect.NewSonarHandler(svr)
+	path, handler := sonar_connect.NewSonarHandler(
+		svr,
+		connect.WithInterceptors(metrics.ForRPC()),
+	)
 	m.Handle(rpcPrefix+path, http.StripPrefix(rpcPrefix, handler))
 
 	m.HandleFunc(
@@ -41,5 +46,5 @@ func ListenAndServe(
 
 	m.Handle("/", assets)
 
-	return http.ListenAndServe(cfg.Addr, m)
+	return http.ListenAndServe(cfg.Addr, metrics.ForHTTP(m))
 }
