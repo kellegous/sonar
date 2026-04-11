@@ -6,6 +6,7 @@ import { createConnectTransport } from "@connectrpc/connect-web";
 import { GetAllResponse_HostStats, Sonar, Stats } from "./gen/sonar_pb";
 import { El } from "./lib/dom";
 import { Signal } from "./lib/signal";
+import { withSource } from "./lib/withSource";
 
 const SVGNS = "http://www.w3.org/2000/svg";
 
@@ -67,7 +68,10 @@ function start(period: number): Signal {
 
   const client = createClient(
     Sonar,
-    createConnectTransport({ baseUrl: "/rpc" }),
+    createConnectTransport({
+      baseUrl: "/rpc",
+      interceptors: [withSource("sonar")],
+    }),
   );
 
   const load = async () => {
