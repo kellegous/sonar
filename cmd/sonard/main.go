@@ -67,7 +67,8 @@ func getAssets(ctx context.Context, devMode *devmode.Flag) (http.Handler, error)
 	return devmode.AssetsFromVite(
 		ctx,
 		devMode,
-		devmode.WithBuildSummary(build.ReadSummary()))
+		devmode.WithBuildSummary(build.ReadSummary()),
+		devmode.UseBun())
 }
 
 func main() {

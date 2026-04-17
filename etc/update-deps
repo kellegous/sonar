@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e pipefail
+set -e -o pipefail
 
 MODULE=$(go list -m)
 
@@ -11,6 +11,6 @@ make
 rm -f go.mod go.sum
 go mod init $MODULE
 go mod tidy
-npm update
+bun update
 
 make nuke

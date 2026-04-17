@@ -57,10 +57,10 @@ ui/src/gen/%_pb.ts: %.proto node_modules/.build bin/protoc
 		$<
 
 internal/ui/assets/index.html: node_modules/.build $(FE_PROTOS) $(shell find ui -type f)
-	SHA="$(SHA)" BUILD_NAME="$(BUILD_NAME)" npm run build
+	SHA="$(SHA)" BUILD_NAME="$(BUILD_NAME)" bun run build
 
 node_modules/.build:
-	npm install
+	bun install
 	touch $@
 
 develop: bin/sonard
