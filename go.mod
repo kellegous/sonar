@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	connectrpc.com/connect v1.19.1
 	github.com/BurntSushi/toml v1.6.0
-	github.com/kellegous/glue v0.25.0
+	github.com/kellegous/glue v0.26.0
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.27.1
 	golang.org/x/net v0.52.0
