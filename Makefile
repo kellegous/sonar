@@ -51,7 +51,7 @@ sonar_connect/sonar.connect.go: sonar.proto bin/protoc-gen-connect-go bin/protoc
 ui/src/gen/%_pb.ts: %.proto node_modules/.build bin/protoc
 	mkdir -p $(dir $@)
 	bin/protoc --proto_path=. \
-		--plugin=protoc-gen-es=node_modules/.bin/protoc-gen-es \
+		--plugin=protoc-gen-es=$(CURDIR)/etc/protoc-gen-es \
 		--es_out=ui/src/gen \
 		--es_opt=target=ts \
 		$<
