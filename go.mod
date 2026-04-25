@@ -1,14 +1,14 @@
 module github.com/kellegous/sonar
 
-go 1.26.1
+go 1.26.2
 
 require (
-	connectrpc.com/connect v1.19.1
+	connectrpc.com/connect v1.19.2
 	github.com/BurntSushi/toml v1.6.0
-	github.com/kellegous/glue v0.26.0
+	github.com/kellegous/glue v0.27.0
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.27.1
-	golang.org/x/net v0.52.0
+	golang.org/x/net v0.53.0
 	golang.org/x/sync v0.20.0
 	google.golang.org/protobuf v1.36.11
 )
@@ -28,5 +28,5 @@ require (
 	github.com/prometheus/procfs v0.16.1 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	golang.org/x/sys v0.42.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 )
