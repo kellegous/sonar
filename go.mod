@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	connectrpc.com/connect v1.19.2
 	github.com/BurntSushi/toml v1.6.0
-	github.com/kellegous/glue v0.28.0
+	github.com/kellegous/glue v0.29.0
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.28.0
 	golang.org/x/net v0.54.0
@@ -19,6 +19,8 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/kellegous/buildname v0.2.0 // indirect
+	github.com/kellegous/poop v0.8.0 // indirect
+	github.com/kellegous/tdfiglet v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -29,4 +31,5 @@ require (
 	go.uber.org/multierr v1.10.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/text v0.37.0 // indirect
 )
