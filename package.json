@@ -5,12 +5,12 @@
   },
   "description": "Sonar",
   "devDependencies": {
-    "@bufbuild/protobuf": "^2.12.1",
-    "@bufbuild/protoc-gen-es": "^2.12.1",
+    "@bufbuild/protobuf": "^2.13.0",
+    "@bufbuild/protoc-gen-es": "^2.13.0",
     "@connectrpc/connect": "^2.1.2",
     "@connectrpc/connect-web": "^2.1.2",
     "@types/node": "^22.20.1",
-    "sass": "^1.101.0",
+    "sass": "^1.102.0",
     "typescript": "^5.9.3",
     "vite": "^6.4.3"
   },
