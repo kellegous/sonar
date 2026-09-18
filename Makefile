@@ -1,6 +1,8 @@
 PROTOC_GEN_GO_VERSION := v1.36.5
 PROTOC_GEN_CONNECT_GO_VERSION := v1.19.1
 PROTOC_VERSION := 34.1
+GOLANGCI_LINT_VERSION := v2.13.1
+GOIMPORTS_VERSION := v0.49.0
 
 SHA = $(shell go run github.com/kellegous/glue/build/info --format="{{.SHA}}")
 BUILD_NAME = $(shell go run github.com/kellegous/glue/build/info --format="{{.Name}}")
@@ -17,9 +19,29 @@ BE_PROTOS := \
 FE_PROTOS := \
 	ui/src/gen/sonar_pb.ts
 
-.PHONY: ALL test clean nuke
+.PHONY: ALL test lint fmt validate clean nuke
 
 ALL: bin/sonard
+
+develop: bin/sonard
+	sudo bin/sonard --dev-mode=.:4066
+
+test:
+	go test ./internal/...
+
+lint: bin/golangci-lint
+	bin/golangci-lint run
+
+fmt: bin/goimports
+	find . -type f -name '*.go' -exec bin/goimports -local $(GO_MOD) -w {} +
+
+validate: test lint fmt
+
+clean:
+	rm -rf bin internal/ui/assets $(BE_PROTOS)
+
+nuke: clean
+	rm -rf node_modules
 
 bin/sonard: cmd/sonard/main.go $(BE_PROTOS) $(ASSETS) $(shell find internal -type f -name '*.go')
 	go build -o $@ ./cmd/sonard
@@ -63,14 +85,9 @@ node_modules/.build:
 	bun install
 	touch $@
 
-develop: bin/sonard
-	sudo bin/sonard --dev-mode=.:4066
 
-test:
-	go test ./internal/...
+bin/golangci-lint:
+	GOBIN="$(CURDIR)/bin" go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
-clean:
-	rm -rf bin internal/ui/assets $(BE_PROTOS)
-
-nuke: clean
-	rm -rf node_modules
+bin/goimports:
+	GOBIN="$(CURDIR)/bin" go install golang.org/x/tools/cmd/goimports@$(GOIMPORTS_VERSION)

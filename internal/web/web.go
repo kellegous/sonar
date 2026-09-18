@@ -6,6 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/kellegous/glue/metrics"
+
 	"github.com/kellegous/sonar/internal/config"
 	"github.com/kellegous/sonar/internal/store"
 	"github.com/kellegous/sonar/sonar_connect"

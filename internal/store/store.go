@@ -89,7 +89,7 @@ func NewMarker(ip net.IP, t time.Time) *Marker {
 func marshalResults(r []time.Duration) []byte {
 	b := bytes.NewBuffer(make([]byte, 0, len(r)*8))
 	for _, t := range r {
-		binary.Write(b, binary.BigEndian, t.Nanoseconds())
+		_ = binary.Write(b, binary.BigEndian, t.Nanoseconds())
 	}
 	return b.Bytes()
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/kellegous/glue/fn"
 )
 
 const (
@@ -46,12 +47,12 @@ func (c *Config) applyDefaults(base string) {
 	}
 }
 
-func (c *Config) ReadFile(filename string) error {
+func (c *Config) ReadFile(filename string) (err error) {
 	r, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
-	defer r.Close()
+	defer fn.WithCare(r.Close, &err)
 
 	return c.Read(r, filepath.Dir(filename))
 }

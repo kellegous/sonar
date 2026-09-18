@@ -1,9 +1,7 @@
 package store
 
 import (
-	"io/ioutil"
 	"net"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -32,21 +30,15 @@ func TestResultMarshal(t *testing.T) {
 	}
 }
 
-func newStore(t *testing.T) (*Store, func() error) {
-	tmp, err := ioutil.TempDir("", "")
-	if err != nil {
-		t.Fatal(err)
-	}
+func newStore(t *testing.T) *Store {
+	tmp := t.TempDir()
 
 	s, err := Open(filepath.Join(tmp, "db"))
 	if err != nil {
-		os.RemoveAll(tmp)
 		t.Fatal(err)
 	}
 
-	return s, func() error {
-		return os.RemoveAll(tmp)
-	}
+	return s
 }
 
 func intArraysAreSame(t *testing.T, a, b []int) {
@@ -84,8 +76,7 @@ func TestReadWrite(t *testing.T) {
 
 	ips := []net.IP{ipA, ipB, ipC}
 
-	s, cleanup := newStore(t)
-	defer cleanup()
+	s := newStore(t)
 
 	for _, ip := range ips {
 		for i := 1; i <= 10; i++ {
