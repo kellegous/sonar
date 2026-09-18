@@ -13,6 +13,8 @@ import (
 	"github.com/kellegous/glue/build"
 	"github.com/kellegous/glue/devmode"
 	"github.com/kellegous/glue/logging"
+	zapsink "github.com/kellegous/glue/logging/yarder/zap"
+	"github.com/kellegous/poop"
 	"go.uber.org/zap"
 
 	"github.com/kellegous/sonar/internal/config"
@@ -71,24 +73,55 @@ func getAssets(ctx context.Context, devMode *devmode.Flag) (http.Handler, error)
 		devmode.UseBun())
 }
 
-func main() {
-	var flags struct {
-		ConfigFile string
-		DevMode    devmode.Flag
-	}
+type Flags struct {
+	ConfigFile string
+	DevMode    devmode.Flag
+	Logging    LoggingFlags
+}
 
-	flag.StringVar(
-		&flags.ConfigFile,
+func (f *Flags) Register(fs *flag.FlagSet) {
+	fs.StringVar(
+		&f.ConfigFile,
 		"conf",
 		"sonar.toml",
 		"the config file for the service")
-	flag.Var(
-		&flags.DevMode,
+
+	fs.Var(
+		&f.DevMode,
 		"dev-mode",
 		"Enable dev mode")
+
+	fs.Var(
+		&f.Logging.Level,
+		"logging.level",
+		"logging: the level to log at")
+	fs.Var(
+		&f.Logging.Outputs,
+		"logging.output",
+		"add the following output to the logging pipeline")
+}
+
+type LoggingFlags struct {
+	Level   logging.LevelFlag
+	Outputs logging.OutputPathsFlag
+}
+
+func main() {
+	if err := zapsink.Register(zapsink.WithApp("sonar")); err != nil {
+		poop.HitFan(err)
+	}
+	flags := Flags{
+		Logging: LoggingFlags{
+			Outputs: logging.NewOutputPathsFlag("stderr"),
+		},
+	}
+	flags.Register(flag.CommandLine)
 	flag.Parse()
 
-	lg := logging.MustSetup()
+	lg := logging.MustSetup(
+		logging.WithLevel(flags.Logging.Level.Level()),
+		logging.WithOutputPaths(flags.Logging.Outputs.Paths()...),
+	)
 
 	ctx := context.Background()
 
