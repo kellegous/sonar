@@ -12,6 +12,7 @@ import (
 
 	"github.com/kellegous/glue/build"
 	"github.com/kellegous/glue/devmode"
+	"github.com/kellegous/glue/fn"
 	"github.com/kellegous/glue/logging"
 	zapsink "github.com/kellegous/glue/logging/yarder/zap"
 	"github.com/kellegous/poop"
@@ -122,14 +123,22 @@ func main() {
 		logging.WithLevel(flags.Logging.Level.Level()),
 		logging.WithOutputPaths(flags.Logging.Outputs.Paths()...),
 	)
+	defer fn.WithAbandon(lg.Sync)
 
-	ctx := context.Background()
+	ctx := logging.With(context.Background(), lg)
 
 	var cfg config.Config
 	if err := cfg.ReadFile(flags.ConfigFile); err != nil {
 		lg.Fatal("unable to read config",
 			zap.Error(err),
 			zap.String("config", flags.ConfigFile))
+	}
+
+	{ // log the build summary
+		bs := build.ReadSummary()
+		lg.Info("sonar started",
+			zap.String("sha", bs.SHA),
+			zap.String("name", bs.Name))
 	}
 
 	s, err := store.Open(cfg.DataPath)
