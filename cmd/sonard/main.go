@@ -34,8 +34,6 @@ func idFor(ip net.IP) int {
 func monitor(cfg *config.Config, s *store.Store) {
 	for {
 		now := time.Now()
-		logging.L(context.Background()).Info("pinging hosts",
-			zap.Time("now", now))
 
 		for _, host := range cfg.Hosts {
 
