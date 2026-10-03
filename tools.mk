@@ -1,3 +1,5 @@
+# Code Generated; Do Not Edit.
+
 # Released: 2026-08-10
 PROTOC_GEN_GO_VERSION := v1.36.12
 
