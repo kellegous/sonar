@@ -11,6 +11,7 @@ make
 rm -f go.mod go.sum
 go mod init $MODULE
 go mod tidy
+
 bun update
 
-make nuke
+make nuke ALL
