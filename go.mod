@@ -1,16 +1,16 @@
 module github.com/kellegous/sonar
 
-go 1.27.2
+go 1.27.4
 
 require (
 	connectrpc.com/connect v1.21.1
 	github.com/BurntSushi/toml v1.6.0
-	github.com/kellegous/glue v0.37.0
+	github.com/kellegous/glue v0.40.0
 	github.com/kellegous/poop v0.8.0
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/net v0.61.0
-	golang.org/x/sync v0.24.0
+	golang.org/x/net v0.62.0
+	golang.org/x/sync v0.25.0
 	google.golang.org/protobuf v1.36.12
 )
 
