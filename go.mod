@@ -9,7 +9,7 @@ require (
 	github.com/kellegous/poop v0.8.0
 	github.com/syndtr/goleveldb v1.0.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/net v0.62.0
+	golang.org/x/net v0.63.0
 	golang.org/x/sync v0.25.0
 	google.golang.org/protobuf v1.36.12
 )
@@ -30,6 +30,6 @@ require (
 	github.com/prometheus/common v0.70.1 // indirect
 	github.com/prometheus/procfs v0.21.1 // indirect
 	go.uber.org/multierr v1.10.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
+	golang.org/x/text v0.44.0 // indirect
 )
