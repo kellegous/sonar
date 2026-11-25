@@ -26,6 +26,8 @@ github.com/kellegous/glue v0.40.0 h1:HWPjKMZFGLmP/Jd2JYXKnCSuwjOrZySRSH7gc3KaHhA
 github.com/kellegous/glue v0.40.0/go.mod h1:ej1gB1aFXyutnnGS4V/xARW96Z1pPpGPkV9pTXEd12I=
 github.com/kellegous/poop v0.8.0 h1:Ipxk7nlTK/OAdsOnSMzjB9rW2RpfI4DOVyvjEe5JDBA=
 github.com/kellegous/poop v0.8.0/go.mod h1:MCuv2rf9Jlp7ks50DRzJh9eBSUsGkR6+LwdVL/8AA+A=
+github.com/kellegous/poop v0.10.0 h1:TGSoSfjlxGvp6y3AIssTvIRsFf11WbMn8FdXQje6Ep8=
+github.com/kellegous/poop v0.10.0/go.mod h1:MCuv2rf9Jlp7ks50DRzJh9eBSUsGkR6+LwdVL/8AA+A=
 github.com/kellegous/tdfiglet v0.3.0 h1:YixozKV9ZtmK4U46MPfveDAQ41P5gRXQAC5TpSgbZ8o=
 github.com/kellegous/tdfiglet v0.3.0/go.mod h1:u/KJB5NO+uD5ZizzrGKPFHhrD8cVhwBe0S+jnIAd/+A=
 github.com/klauspost/compress v1.19.1 h1:VsB4HPswih7mmZ8WleSFQ75c/Ui1M4trX5oAsJnhSlk=
@@ -34,6 +36,8 @@ github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/mattn/go-colorable v0.1.14 h1:9A9LHSqF/7dyVVX6g0U9cwm9pG3kP9gSzcuIPHPsaIE=
 github.com/mattn/go-colorable v0.1.14/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
+github.com/mattn/go-colorable v0.1.16 h1:+2YjeAe7xP1OQbZW1jERPWWCDLlNqFNCvjiqGiAt84A=
+github.com/mattn/go-colorable v0.1.16/go.mod h1:6LmQG8QLFO4G5z1gPvYEzlUgJ2wF+stgPZH1UqBm1s8=
 github.com/mattn/go-isatty v0.0.24 h1:tGZZoVgT/KiqK1c8ocVLeDS8BSWMRd47J3Lbz7vsReI=
 github.com/mattn/go-isatty v0.0.24/go.mod h1:nMCL3Zebbrt45jsMDgnfIwz6ydEQApk5oEI3HqDio6A=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
